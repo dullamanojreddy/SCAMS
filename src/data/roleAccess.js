@@ -26,7 +26,3 @@ const ROLE_FEATURES = {
 export function canAccessFeature(role, featureId) {
   return ROLE_FEATURES[role]?.has(featureId) ?? false;
 }
-
-export function getRoleFeatures(role) {
-  return ROLE_FEATURES[role] || new Set();
-}

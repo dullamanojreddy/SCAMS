@@ -147,9 +147,6 @@ export default function App() {
         setIsLocalDbModalOpen(true);
         break;
       case 'admin-console':
-        setAdminActiveTab('users');
-        setIsAdminModalOpen(true);
-        break;
       case 'admin-users':
         setAdminActiveTab('users');
         setIsAdminModalOpen(true);
@@ -183,9 +180,6 @@ export default function App() {
         setIsAdminModalOpen(true);
         break;
       case 'faculty-portal':
-        setFacultyActiveTab('queries');
-        setIsFacultyModalOpen(true);
-        break;
       case 'faculty-queries':
         setFacultyActiveTab('queries');
         setIsFacultyModalOpen(true);
@@ -244,25 +238,11 @@ export default function App() {
   const handleMetricCardClick = (metricId) => {
     switch (metricId) {
       case 'metric-food': // Active Canteen Orders
-        if (!canAccessFeature(currentRole, 'food')) return;
-        setIsTrackOrderOpen(true);
-        break;
-      case 'metric-complaints': // Complaints / Helpdesk
-        if (!canAccessFeature(currentRole, 'complaints')) return;
-        setIsComplaintsOpen(true);
-        break;
-      case 'metric-library': // Library Books
-        if (!canAccessFeature(currentRole, 'library')) return;
-        setIsLibraryOpen(true);
-        break;
-      case 'metric-placements': // Placements Database
-        if (!canAccessFeature(currentRole, 'placements')) return;
-        setIsPlacementsOpen(true);
-        break;
       case 'metric-1':
         if (!canAccessFeature(currentRole, 'food')) return;
         setIsTrackOrderOpen(true);
         break;
+      case 'metric-complaints': // Complaints / Helpdesk
       case 'metric-2':
         if (!canAccessFeature(currentRole, 'complaints')) return;
         setIsComplaintsOpen(true);
@@ -274,6 +254,14 @@ export default function App() {
       case 'metric-4':
         if (!canAccessFeature(currentRole, 'notices')) return;
         setIsNoticesOpen(true);
+        break;
+      case 'metric-library': // Library Books
+        if (!canAccessFeature(currentRole, 'library')) return;
+        setIsLibraryOpen(true);
+        break;
+      case 'metric-placements': // Placements Database
+        if (!canAccessFeature(currentRole, 'placements')) return;
+        setIsPlacementsOpen(true);
         break;
       default:
         break;
@@ -299,7 +287,6 @@ export default function App() {
         currentUser={currentUser}
         onClose={() => setIsMobileSidebarOpen(false)}
         onLogout={handleLogout}
-        onOpenSRS={isStudent ? () => setIsSRSOpen(true) : undefined}
         onSelectTab={(tab) => {
           setActiveTab(tab);
           setIsMobileSidebarOpen(false);
@@ -412,7 +399,6 @@ export default function App() {
         currentUser={currentUser}
         onSelectTab={setActiveTab}
         onOpenAction={handleQuickAction}
-        onOpenIdModal={() => setIsIdModalOpen(true)}
       />
 
       {/* Interactive Modals for SCAM SRS Modules */}

@@ -17,7 +17,6 @@ export const MobileBottomNav = ({
   currentUser,
   onSelectTab,
   onOpenAction,
-  onOpenIdModal,
 }) => {
   const role = currentUser?.role || 'Student';
   const tabs = role === 'Admin'

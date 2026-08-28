@@ -17,7 +17,7 @@ import {
   Moon,
   FileText,
 } from 'lucide-react';
-import { USER_PROFILE, INSTITUTION } from '../data/mockData';
+import { USER_PROFILE } from '../data/mockData';
 import { useTheme } from '../context/ThemeContext';
 
 export const Sidebar = ({
@@ -25,13 +25,12 @@ export const Sidebar = ({
   onSelectTab,
   onOpenIdModal,
   onOpenActionModal,
-  onOpenSRS,
   onLogout,
   currentUser = USER_PROFILE,
   isOpen = false,
   onClose,
 }) => {
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const profile = currentUser || USER_PROFILE;
 
   const getNavItems = () => {
@@ -114,9 +113,7 @@ export const Sidebar = ({
                   id={`nav-${item.id}`}
                   onClick={() => {
                     onSelectTab(item.id);
-                    if (item.id === 'srs') {
-                      onOpenSRS();
-                    } else if (item.id !== 'home') {
+                    if (item.id !== 'home') {
                       onOpenActionModal(item.id);
                     }
                   }}
