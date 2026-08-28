@@ -313,7 +313,6 @@ export default function App() {
               onOpenScanner={isStudent ? () => setIsIdModalOpen(true) : undefined}
               onOpenSRS={isStudent ? () => setIsSRSOpen(true) : undefined}
               onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-              onSwitchRole={handleSwitchRole}
             />
 
             {/* Top Row: 3 Grid Cards */}

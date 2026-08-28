@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Search,
   Bell,
   Scan,
   CloudSun,
   Menu,
-  UserCheck,
-  Shield,
-  GraduationCap,
   Sun,
   Moon,
   FileText,
 } from 'lucide-react';
-import { USER_ROLES } from '../data/mockData';
 import { useTheme } from '../context/ThemeContext';
 import { LiveClock } from './LiveClock';
 
@@ -23,10 +19,8 @@ export const Header = ({
   onOpenScanner,
   onOpenSRS,
   onToggleSidebar,
-  onSwitchRole,
 }) => {
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const [greeting, setGreeting] = useState('Good morning');
   const [greetingEmoji, setGreetingEmoji] = useState('👋');
 
@@ -54,37 +48,6 @@ export const Header = ({
     const interval = setInterval(updateGreeting, 60000);
     return () => clearInterval(interval);
   }, []);
-
-  const roles = [
-    {
-      key: 'student',
-      role: 'Student (Manoj Reddy)',
-      icon: GraduationCap,
-      roll: '1602-24-737-152',
-      desc: 'Author 1 • IT 3rd Year',
-    },
-    {
-      key: 'student_bhavesh',
-      role: 'Student (Bhavesh Dharewa)',
-      icon: GraduationCap,
-      roll: '1602-24-737-134',
-      desc: 'Author 2 • IT 3rd Year',
-    },
-    {
-      key: 'faculty',
-      role: 'Faculty (Mrs. S. Rajyalakshmi)',
-      icon: UserCheck,
-      roll: 'FAC-IT-108',
-      desc: 'Asst. Prof & Class Coordinator',
-    },
-    {
-      key: 'admin',
-      role: 'Campus Admin (Dean)',
-      icon: Shield,
-      roll: 'ADM-VCE-001',
-      desc: 'Academic & Admin Control',
-    },
-  ];
 
   return (
     <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
@@ -182,58 +145,6 @@ export const Header = ({
             </>
           )}
         </button>
-
-        {/* Role Switcher for Perspective Evaluation */}
-        <div className="relative">
-          <button
-            id="btn-role-switcher"
-            onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-            className="px-3 py-2 rounded-2xl bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] shadow-sm transition cursor-pointer"
-            title="Switch Perspective"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Role: {currentUser?.role || 'Student'}</span>
-            <span className="text-slate-400 dark:text-neutral-500 text-[10px]">▼</span>
-          </button>
-
-          {roleMenuOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#121212] border border-slate-200 dark:border-[#262626] rounded-2xl shadow-2xl p-2 z-50 space-y-1 animate-fadeIn">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-2 py-1 flex items-center justify-between">
-                <span>Switch Perspective</span>
-                <span className="text-[9px] font-mono text-emerald-500">RBAC ACTIVE</span>
-              </div>
-              {roles.map((r) => {
-                const Icon = r.icon;
-                const isSelected =
-                  (r.key === 'student' && currentUser?.rollNo === '1602-24-737-152') ||
-                  (r.key === 'student_bhavesh' && currentUser?.rollNo === '1602-24-737-134') ||
-                  (r.key === 'faculty' && currentUser?.role === 'Faculty') ||
-                  (r.key === 'admin' && currentUser?.role === 'Admin');
-
-                return (
-                  <button
-                    key={r.key}
-                    onClick={() => {
-                      if (onSwitchRole) onSwitchRole(r.key);
-                      setRoleMenuOpen(false);
-                    }}
-                    className={`w-full p-2 rounded-xl text-left text-xs transition flex items-start gap-2 cursor-pointer ${
-                      isSelected
-                        ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-950 dark:text-purple-200 font-bold border border-purple-200/50 dark:border-purple-800/40'
-                        : 'hover:bg-slate-100 dark:hover:bg-[#1e1e1e] text-slate-700 dark:text-neutral-200'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mt-0.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                    <div>
-                      <div className="font-bold">{r.role}</div>
-                      <div className="text-[10px] text-slate-400 dark:text-neutral-400 font-mono">{r.desc}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         {/* Global Search Bar */}
         <div className="relative flex-1 min-w-[160px] sm:w-52 md:w-60">
