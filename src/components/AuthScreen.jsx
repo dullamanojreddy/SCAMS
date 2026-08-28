@@ -30,9 +30,10 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
   const [loginIdentifier, setLoginIdentifier] = useState('1602-24-737-152');
   const [loginPassword, setLoginPassword] = useState('campus@123');
 
-  // Sign Up Form State (Name, Roll No, Branch, Section, Age, Password)
+  // Sign Up Form State
   const [signUpForm, setSignUpForm] = useState({
     name: '',
+    role: 'Student',
     rollNo: '1602-24-',
     branch: 'Information Technology (IT)',
     section: 'Section A',
@@ -96,6 +97,7 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
 
     const newUser = {
       name: signUpForm.name.trim(),
+      role: signUpForm.role,
       rollNo: signUpForm.rollNo.trim(),
       department: `${signUpForm.branch.split(' ')[0]} - ${signUpForm.section}`,
       email: `${signUpForm.rollNo.trim().toLowerCase()}@campus.edu`,
@@ -279,7 +281,7 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
             </h2>
             <p className="text-sm text-slate-500 mt-1">
               {isSignUp
-                ? 'Fill in your student credentials to register'
+                ? 'Fill in your campus credentials to register'
                 : 'Enter your credentials to access your account'}
             </p>
           </div>
@@ -463,6 +465,25 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
                   />
                 </div>
+              </div>
+
+              {/* Account Role */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Account Role
+                </label>
+                <select
+                  id="signup-role"
+                  value={signUpForm.role}
+                  onChange={(e) =>
+                    setSignUpForm({ ...signUpForm, role: e.target.value })
+                  }
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
+                >
+                  <option value="Student">Student</option>
+                  <option value="Faculty">Faculty</option>
+                  <option value="Admin">Admin</option>
+                </select>
               </div>
 
               {/* Roll Number (with 1602 common template helper) */}
