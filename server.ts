@@ -27,7 +27,7 @@ async function startServer() {
   app.use(errorMiddleware);
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Campus OS Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Campus OS Server running at http://localhost:${PORT}`);
   });
 }
 
