@@ -1,0 +1,6 @@
+{
+  "name": "SCAM - Smart Campus System",
+  "description": "Smart Campus Administration & Management System (SCAM v1.0) for Vasavi College of Engineering. Features Smart Campus Map navigation, targeted Notices, Complaints/Queries & FAQ, Canteen Food Ordering & live tracking, Library catalog with recommendations, Senior Community, Placement database & resume preparation, and an intelligent AI Campus Assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
