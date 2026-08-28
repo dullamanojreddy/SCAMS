@@ -35,7 +35,7 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
   const [signUpForm, setSignUpForm] = useState({
     name: '',
     role: 'Student',
-    rollNo: '1602-24-',
+    rollNo: '',
     branch: 'Information Technology (IT)',
     section: 'Section A',
     age: '20',
@@ -106,8 +106,8 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
       setErrorMsg('Please enter your full name.');
       return;
     }
-    if (!signUpForm.rollNo.trim() || signUpForm.rollNo.length < 8) {
-      setErrorMsg('Please enter a valid roll number (format: 1602-XX-XXX-XXX).');
+    if (!signUpForm.rollNo.trim() || signUpForm.rollNo.length < 4) {
+      setErrorMsg('Please enter a valid campus ID.');
       return;
     }
     if (!signUpForm.age || parseInt(signUpForm.age) < 16) {
@@ -558,27 +558,27 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
                 </div>
               </div>
 
-              {/* Roll Number (with 1602 common template helper) */}
+              {/* Campus ID */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Roll Number
+                  Campus ID
                 </label>
                 <div className="relative">
                   <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    id="signup-rollno"
+                    id="signup-campus-id"
                     type="text"
                     required
                     value={signUpForm.rollNo}
                     onChange={(e) =>
                       setSignUpForm({ ...signUpForm, rollNo: e.target.value })
                     }
-                    placeholder="1602-24-737-152"
+                    placeholder="e.g. 1602-24-737-152"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-sm text-slate-900 font-mono placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
                   />
                 </div>
                 <span className="text-[10px] text-slate-400 pl-1">
-                  Template: 1602 is common prefix for campus students
+                  Use your student, faculty, or admin campus ID
                 </span>
               </div>
 
