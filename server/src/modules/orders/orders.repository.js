@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistOrder } from '../../database/persistence.js';
 
 export class OrderRepository {
   findAll(filter = {}) {
@@ -30,6 +31,7 @@ export class OrderRepository {
       ...orderData,
     };
     dataStore.orders.unshift(newOrder);
+    persistOrder(newOrder);
     return newOrder;
   }
 
@@ -38,6 +40,7 @@ export class OrderRepository {
     if (order) {
       order.status = newStatus;
       order.updatedAt = new Date().toISOString();
+      persistOrder(order);
       return order;
     }
     return null;

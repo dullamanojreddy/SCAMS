@@ -9,6 +9,7 @@ import { eventService } from '../../events/events.service.js';
 import { mapService } from '../../map/map.service.js';
 import { dataStore } from '../../../database/inMemoryStore.js';
 import { ForbiddenError } from '../../../shared/errors/AppError.js';
+import { persistAIAction } from '../../../database/persistence.js';
 
 export const toolRegistry = {
   // 1. Campus search & directory
@@ -95,6 +96,7 @@ export const toolRegistry = {
         item,
         expiresAt: new Date(Date.now() + 10 * 60000),
       });
+      persistAIAction({ actionId, type: 'CREATE_ORDER', userId: context.user.id, payload, expiresAt: new Date(Date.now() + 10 * 60000) });
 
       return {
         actionId,
@@ -141,6 +143,7 @@ export const toolRegistry = {
         event,
         expiresAt: new Date(Date.now() + 10 * 60000),
       });
+      persistAIAction({ actionId, type: 'REGISTER_EVENT', userId: context.user.id, payload: { eventId }, expiresAt: new Date(Date.now() + 10 * 60000) });
 
       return {
         actionId,
@@ -180,6 +183,7 @@ export const toolRegistry = {
         payload,
         expiresAt: new Date(Date.now() + 10 * 60000),
       });
+      persistAIAction({ actionId, type: 'CREATE_COMPLAINT', userId: context.user.id, payload, expiresAt: new Date(Date.now() + 10 * 60000) });
 
       return {
         actionId,

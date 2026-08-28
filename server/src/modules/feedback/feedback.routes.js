@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistFeedback } from '../../database/persistence.js';
 import { authMiddleware } from '../../middleware/auth.middleware.js';
 import { requireRole } from '../../middleware/role.middleware.js';
 import { ApiResponse } from '../../shared/utils/response.js';
@@ -20,6 +21,7 @@ router.post('/', async (req, res, next) => {
       createdAt: new Date().toISOString(),
     };
     dataStore.feedbacks.unshift(fb);
+    persistFeedback(fb);
     return ApiResponse.success(res, fb, 'Thank you for your campus feedback!', 201);
   } catch (error) {
     next(error);

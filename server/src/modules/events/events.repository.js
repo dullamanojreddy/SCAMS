@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistEventRegistration } from '../../database/persistence.js';
 
 export class EventRepository {
   findAll() {
@@ -26,6 +27,7 @@ export class EventRepository {
     if (event && !event.registeredUserIds.includes(userId)) {
       event.registeredUserIds.push(userId);
       event.registeredCount += 1;
+      persistEventRegistration(eventId, userId);
       return event;
     }
     return null;

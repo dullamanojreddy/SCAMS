@@ -112,3 +112,18 @@ The AI is an intelligent orchestration layer built on top of backend services (n
   - Full modular backend architecture implemented with clean separation of concerns.
   - Endpoints follow strict `/api/v1` standards with unified error handling, validation, rate limiting, and RBAC.
   - AI Assistant integrated with domain tool registry, confirmation loop, and Gemini 3.7 Flash server-side client.
+
+## 7. Persistence Status
+- PostgreSQL is the configured local database and the schema is applied idempotently at server startup.
+- Registration persists accounts with hashed passwords; login can verify persisted accounts.
+- AI user/assistant messages, activity events, and pending action records have PostgreSQL storage foundations.
+- The schema includes normalized SRS entities for notices, notifications, complaints, queries, campus, food, orders, library, community, verification, placements, AI, device tokens, and audit/history records.
+- **Not yet complete**: most domain repository reads and most frontend screens still use the prototype in-memory store or mock data. Orders, menu edits, complaints, notices, bookings, events, feedback, library, community, placements, and notifications require read/write API migration before they are restart-durable.
+- Redis is optional and is not the source of truth.
+
+## 8. Persistence Roadmap
+1. Add repeatable versioned migrations and development seed data.
+2. Migrate repository reads from `inMemoryStore.js` to PostgreSQL DTOs.
+3. Add transactions and status-history writes for complaints, orders, notices, bookings, events, and verification.
+4. Replace frontend mock data mutations with authenticated API clients and loading/error states.
+5. Add ownership, faculty-scope, admin-RBAC, restart-durability, and security tests.

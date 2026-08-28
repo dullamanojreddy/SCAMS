@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistComplaint } from '../../database/persistence.js';
 
 export class ComplaintRepository {
   findAll(filter = {}) {
@@ -36,6 +37,7 @@ export class ComplaintRepository {
       ...complaintData,
     };
     dataStore.complaints.unshift(newComplaint);
+    persistComplaint(newComplaint);
     return newComplaint;
   }
 
@@ -43,6 +45,7 @@ export class ComplaintRepository {
     const complaint = this.findById(id);
     if (complaint) {
       Object.assign(complaint, updates);
+      persistComplaint(complaint);
       return complaint;
     }
     return null;

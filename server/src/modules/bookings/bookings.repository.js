@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistBooking } from '../../database/persistence.js';
 
 export class BookingRepository {
   findAllResources() {
@@ -31,6 +32,7 @@ export class BookingRepository {
       ...reservation,
     };
     dataStore.bookingReservations.push(newRes);
+    persistBooking(newRes);
     return newRes;
   }
 
@@ -38,6 +40,7 @@ export class BookingRepository {
     const res = dataStore.bookingReservations.find((r) => r.id === id);
     if (res) {
       res.status = 'CANCELLED';
+      persistBooking(res);
       return res;
     }
     return null;

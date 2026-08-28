@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistNotice } from '../../database/persistence.js';
 
 export class NoticeRepository {
   findAll(filter = {}) {
@@ -28,6 +29,7 @@ export class NoticeRepository {
       ...notice,
     };
     dataStore.notices.unshift(newNotice);
+    persistNotice(newNotice);
     return newNotice;
   }
 }

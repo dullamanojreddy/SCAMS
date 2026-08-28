@@ -1,4 +1,5 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { persistNotification } from '../../database/persistence.js';
 
 export class NotificationService {
   async notifyUser(userId, { title, message, type = 'GENERAL' }) {
@@ -12,6 +13,7 @@ export class NotificationService {
       createdAt: new Date().toISOString(),
     };
     dataStore.notifications.unshift(notification);
+    persistNotification(notification);
     return notification;
   }
 
@@ -23,6 +25,7 @@ export class NotificationService {
     const notif = dataStore.notifications.find((n) => n.id === notificationId && n.userId === userId);
     if (notif) {
       notif.read = true;
+      persistNotification(notif);
     }
     return notif;
   }

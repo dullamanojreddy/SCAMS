@@ -1,7 +1,7 @@
 import { authRepository } from './auth.repository.js';
 import { UnauthorizedError, NotFoundError, ValidationError } from '../../shared/errors/AppError.js';
 import { config } from '../../config/env.js';
-import { createPersistentUser } from '../../database/persistence.js';
+import { createPersistentUser, verifyPersistentUser } from '../../database/persistence.js';
 
 export class AuthService {
   async getCurrentUser(userId) {
@@ -13,7 +13,15 @@ export class AuthService {
   }
 
   async login(emailOrStudentId, password) {
-    // In Campus OS prototype, authenticate against registered campus directory
+    const persistentUser = await verifyPersistentUser(emailOrStudentId, password);
+    if (persistentUser) {
+      const token = `cos_jwt_${persistentUser.id}_${Date.now()}`;
+      return {
+        user: persistentUser,
+        tokens: { accessToken: token, refreshToken: token, expiresIn: config.jwt.accessExpiresIn },
+      };
+    }
+
     const user =
       authRepository.findByEmail(emailOrStudentId) ||
       authRepository.findByStudentId(emailOrStudentId);
