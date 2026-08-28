@@ -31,7 +31,7 @@ export class OrderService {
       throw new ValidationError('Order must contain at least one item');
     }
 
-    const vendor = foodRepository.findVendorById(vendorId);
+    const vendor = await foodRepository.findVendorById(vendorId);
     if (!vendor) {
       throw new NotFoundError('Food Vendor');
     }
@@ -41,7 +41,7 @@ export class OrderService {
     const validatedItems = [];
 
     for (const item of items) {
-      const foodItem = foodRepository.findItemById(item.foodItemId || item.id);
+      const foodItem = await foodRepository.findItemById(item.foodItemId || item.id);
       if (!foodItem) {
         throw new NotFoundError(`Food item ${item.foodItemId || item.id}`);
       }

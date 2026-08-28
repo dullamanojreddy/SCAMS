@@ -115,6 +115,21 @@ CREATE TABLE IF NOT EXISTS campus_locations (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS map_nodes (
+    id VARCHAR(120) PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    x DECIMAL(8, 2),
+    y DECIMAL(8, 2)
+);
+
+CREATE TABLE IF NOT EXISTS map_edges (
+    from_node_id VARCHAR(120) NOT NULL REFERENCES map_nodes(id) ON DELETE CASCADE,
+    to_node_id VARCHAR(120) NOT NULL REFERENCES map_nodes(id) ON DELETE CASCADE,
+    distance DECIMAL(8, 2) NOT NULL,
+    accessible BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (from_node_id, to_node_id)
+);
+
 -- 7. CANTEEN FOOD ITEMS & ORDERS TABLE (SRS 4.4)
 CREATE TABLE IF NOT EXISTS canteen_vendors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

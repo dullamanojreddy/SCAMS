@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Search,
@@ -17,12 +17,14 @@ import {
   Zap,
 } from 'lucide-react';
 import { CAMPUS_BUILDINGS } from '../data/mockData';
+import { api } from '../api/client';
 
 export const FullMapModal = ({
   isOpen,
   onClose,
   selectedBuildingId,
 }) => {
+  const [buildings, setBuildings] = useState(CAMPUS_BUILDINGS);
   const [activeBuilding, setActiveBuilding] = useState(
     CAMPUS_BUILDINGS.find((b) => b.id === (selectedBuildingId || 'ramanujan')) || CAMPUS_BUILDINGS[0]
   );
@@ -35,9 +37,33 @@ export const FullMapModal = ({
   const [navDestination, setNavDestination] = useState('room-304');
   const [navStarted, setNavStarted] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/campus/buildings')
+      .then((items) => {
+        if (!Array.isArray(items) || !items.length) return;
+        const normalized = items.map((item, index) => ({
+          id: item.id || item.code || item.name || `building-${index}`,
+          name: item.name,
+          code: item.code || item.blockName || item.block_name || item.name?.slice(0, 3).toUpperCase(),
+          departments: item.departments || [item.category || 'Campus'],
+          floors: item.floorCount || item.floor_number || item.floorCount || 1,
+          facilities: item.facilities || [],
+          description: item.description || '',
+        }));
+        setBuildings(normalized);
+      })
+      .catch(() => {});
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !buildings.length) return;
+    setActiveBuilding(buildings.find((b) => b.id === selectedBuildingId) || buildings[0]);
+  }, [isOpen, selectedBuildingId, buildings]);
+
   if (!isOpen) return null;
 
-  const filteredBuildings = CAMPUS_BUILDINGS.filter(
+  const filteredBuildings = buildings.filter(
     (b) =>
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.code.toLowerCase().includes(searchQuery.toLowerCase()) ||

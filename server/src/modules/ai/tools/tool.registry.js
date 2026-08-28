@@ -10,6 +10,7 @@ import { mapService } from '../../map/map.service.js';
 import { dataStore } from '../../../database/inMemoryStore.js';
 import { ForbiddenError } from '../../../shared/errors/AppError.js';
 import { persistAIAction } from '../../../database/persistence.js';
+import { dynamicRepository } from '../../dynamic/dynamic.repository.js';
 
 export const toolRegistry = {
   // 1. Campus search & directory
@@ -19,6 +20,33 @@ export const toolRegistry = {
     requiresConfirmation: false,
     async execute({ query }) {
       return campusService.searchCampus(query);
+    },
+  },
+
+  searchLibrary: {
+    description: 'Search the PostgreSQL-backed campus library catalog',
+    parameters: { query: { type: 'string' } },
+    requiresConfirmation: false,
+    async execute({ query }) {
+      return dynamicRepository.library(query || '');
+    },
+  },
+
+  searchPlacements: {
+    description: 'Search PostgreSQL-backed placement companies and interview questions',
+    parameters: {},
+    requiresConfirmation: false,
+    async execute() {
+      return dynamicRepository.placements();
+    },
+  },
+
+  searchFAQs: {
+    description: 'Retrieve verified campus FAQs from the PostgreSQL knowledge base',
+    parameters: {},
+    requiresConfirmation: false,
+    async execute() {
+      return dynamicRepository.faqs();
     },
   },
 

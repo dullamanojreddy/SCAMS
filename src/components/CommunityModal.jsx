@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   MessageSquare,
@@ -16,9 +16,10 @@ import {
   Search,
 } from 'lucide-react';
 import { COMMUNITY_POSTS, USER_PROFILE } from '../data/mockData';
+import { api } from '../api/client';
 
 export const CommunityModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) => {
-  const [posts, setPosts] = useState(COMMUNITY_POSTS);
+  const [posts, setPosts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAsking, setIsAsking] = useState(false);
@@ -28,6 +29,13 @@ export const CommunityModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) 
   const [activeReplyPostId, setActiveReplyPostId] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [reportedToast, setReportedToast] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/community').then((items) => {
+      if (Array.isArray(items)) setPosts(items);
+    }).catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -42,6 +50,9 @@ export const CommunityModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) 
   });
 
   const handleUpvote = (postId) => {
+    api.post(`/api/v1/community/${postId}/upvote`, {}).then((result) => {
+      setPosts((prev) => prev.map((post) => post.id === postId ? { ...post, ...result } : post));
+    }).catch(() => {});
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === postId) {
@@ -67,7 +78,7 @@ export const CommunityModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) 
     );
   };
 
-  const handleCreatePost = (e) => {
+  const handleCreatePost = async (e) => {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
 
@@ -88,7 +99,12 @@ export const CommunityModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) 
       answers: [],
     };
 
-    setPosts([newPost, ...posts]);
+    try {
+      const saved = await api.post('/api/v1/community', { title: newTitle, body: newContent, category: newCategory });
+      setPosts([{ ...newPost, ...saved, content: saved.body || saved.content }, ...posts]);
+    } catch {
+      setPosts([newPost, ...posts]);
+    }
     setNewTitle('');
     setNewContent('');
     setIsAsking(false);

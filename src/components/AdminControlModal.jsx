@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ShieldAlert,
   Users,
@@ -40,6 +40,7 @@ import {
   CAMPUS_BUILDINGS,
   FAQS,
 } from '../data/mockData';
+import { api } from '../api/client';
 
 export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => {
   const [activeAdminTab, setActiveAdminTab] = useState(initialTab);
@@ -70,6 +71,28 @@ export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => 
   const [newFaqA, setNewFaqA] = useState('');
   const [newFaqCat, setNewFaqCat] = useState('Academic');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    Promise.allSettled([
+      api.get('/api/v1/notices'),
+      api.get('/api/v1/complaints'),
+      api.get('/api/v1/faq'),
+      api.get('/api/v1/food/items'),
+      api.get('/api/v1/library'),
+      api.get('/api/v1/placements'),
+    ]).then(([notices, complaints, faqs, menu, books, placements]) => {
+      if (notices.status === 'fulfilled' && Array.isArray(notices.value)) setNoticesList(notices.value);
+      if (complaints.status === 'fulfilled' && Array.isArray(complaints.value)) setComplaintsList(complaints.value);
+      if (faqs.status === 'fulfilled' && Array.isArray(faqs.value)) setFaqList(faqs.value);
+      if (menu.status === 'fulfilled' && Array.isArray(menu.value)) setMenuList(menu.value);
+      if (books.status === 'fulfilled' && Array.isArray(books.value)) setBooksList(books.value);
+      if (placements.status === 'fulfilled' && placements.value) {
+        if (Array.isArray(placements.value.companies)) setCompaniesList(placements.value.companies);
+        if (Array.isArray(placements.value.questions)) setInterviewQuestionsList(placements.value.questions);
+      }
+    }).catch(() => {});
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const showSuccess = (msg) => {
@@ -95,33 +118,48 @@ export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => 
   };
 
   // 2. Notice Management Actions
-  const handleCreateNotice = (e) => {
+  const handleCreateNotice = async (e) => {
     e.preventDefault();
     if (!newNoticeTitle || !newNoticeBody) return;
-    const item = {
-      id: `NOTICE-ADM-${Date.now()}`,
-      title: newNoticeTitle,
-      body: newNoticeBody,
-      content: newNoticeBody,
-      category: 'Official Admin Notice',
-      date: 'Just now',
-      priority: 'high',
-      department: `Target: ${newNoticeBranch} - ${newNoticeYear}`,
-      read: false,
-    };
-    setNoticesList([item, ...noticesList]);
+    try {
+      const saved = await api.post('/api/v1/notices', {
+        title: newNoticeTitle,
+        subtitle: newNoticeBody,
+        category: 'ADMIN',
+        priority: 'NORMAL',
+      });
+      setNoticesList((prev) => [saved, ...prev]);
+    } catch {
+      const item = {
+        id: `NOTICE-ADM-${Date.now()}`,
+        title: newNoticeTitle,
+        body: newNoticeBody,
+        content: newNoticeBody,
+        category: 'Official Admin Notice',
+        date: 'Just now',
+        priority: 'high',
+        department: `Target: ${newNoticeBranch} - ${newNoticeYear}`,
+        read: false,
+      };
+      setNoticesList((prev) => [item, ...prev]);
+    }
     setNewNoticeTitle('');
     setNewNoticeBody('');
     showSuccess('Notice published & targeted to students.');
   };
 
-  const handleRetractNotice = (noticeId) => {
+  const handleRetractNotice = async (noticeId) => {
+    try {
+      await api.delete(`/api/v1/notices/${noticeId}`);
+    } catch {
+      // local fallback
+    }
     setNoticesList((prev) => prev.filter((n) => n.id !== noticeId));
     showSuccess('Notice retracted from student feed.');
   };
 
   // 3. Emergency Notifications Actions
-  const handleCreateEmergency = (e) => {
+  const handleCreateEmergency = async (e) => {
     e.preventDefault();
     if (!newEmergTitle || !newEmergMsg) return;
     const em = {
@@ -135,6 +173,7 @@ export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => 
       target: 'All Students, Faculty & Staff',
       channels: 'FCM Push, App Banner, SMS Gateway',
     };
+    try { await api.post('/api/v1/notifications/broadcast', { title: newEmergTitle, message: newEmergMsg, type: 'EMERGENCY' }); } catch { /* local fallback */ }
     setEmergencyList([em, ...emergencyList]);
     setNewEmergTitle('');
     setNewEmergMsg('');
@@ -147,10 +186,15 @@ export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => 
   };
 
   // 4. Complaints Management Actions
-  const handleUpdateComplaintStatus = (ticketId, nextStatus) => {
-    setComplaintsList((prev) =>
-      prev.map((c) => (c.id === ticketId ? { ...c, status: nextStatus } : c))
-    );
+  const handleUpdateComplaintStatus = async (ticketId, nextStatus) => {
+    if (nextStatus === 'Resolved') {
+      try {
+        await api.post(`/api/v1/complaints/${ticketId}/resolve`, { note: 'Resolved by campus admin' });
+      } catch {
+        // local fallback
+      }
+    }
+    setComplaintsList((prev) => prev.map((c) => (c.id === ticketId ? { ...c, status: nextStatus } : c)));
     showSuccess(`Complaint ${ticketId} transitioned to ${nextStatus}.`);
   };
 
@@ -164,45 +208,73 @@ export const AdminControlModal = ({ isOpen, onClose, initialTab = 'users' }) => 
   };
 
   // 5. FAQ Management Actions
-  const handleAddFaq = (e) => {
+  const handleAddFaq = async (e) => {
     e.preventDefault();
     if (!newFaqQ || !newFaqA) return;
-    const faq = {
-      id: `faq-${Date.now()}`,
-      category: newFaqCat,
-      question: newFaqQ,
-      answer: newFaqA,
-    };
-    setFaqList([faq, ...faqList]);
+    try {
+      const saved = await api.post('/api/v1/faq', { category: newFaqCat, question: newFaqQ, answer: newFaqA });
+      setFaqList((prev) => [saved, ...prev]);
+    } catch {
+      setFaqList((prev) => [
+        {
+          id: `faq-${Date.now()}`,
+          category: newFaqCat,
+          question: newFaqQ,
+          answer: newFaqA,
+        },
+        ...prev,
+      ]);
+    }
     setNewFaqQ('');
     setNewFaqA('');
     showSuccess('FAQ entry saved to campus knowledge base.');
   };
 
-  const handleDeleteFaq = (faqId) => {
+  const handleDeleteFaq = async (faqId) => {
+    try {
+      await api.delete(`/api/v1/faq/${faqId}`);
+    } catch {
+      // local fallback
+    }
     setFaqList((prev) => prev.filter((f) => f.id !== faqId));
     showSuccess('FAQ entry deleted.');
   };
 
   // 7. Food / Canteen Management Actions
-  const handleToggleMenuAvailability = (itemId) => {
+  const handleToggleMenuAvailability = async (itemId) => {
+    const nextItem = menuList.find((item) => item.id === itemId);
+    const nextAvailability = !(nextItem?.available ?? nextItem?.isAvailable);
+    try {
+      await api.patch(`/api/v1/food/items/${itemId}`, { isAvailable: nextAvailability });
+    } catch {
+      // local fallback
+    }
     setMenuList((prev) =>
       prev.map((item) =>
-        item.id === itemId ? { ...item, available: !item.available } : item
+        item.id === itemId
+          ? { ...item, available: nextAvailability, isAvailable: nextAvailability }
+          : item
       )
     );
     showSuccess('Canteen item availability updated.');
   };
 
   // 8. Library Management Actions
-  const handleToggleBookStock = (bookId) => {
+  const handleToggleBookStock = async (bookId) => {
+    const current = booksList.find((b) => b.id === bookId);
+    const nextCopies = (current?.availableCopies ?? 0) > 0 ? 0 : 3;
+    try {
+      await api.patch(`/api/v1/library/books/${bookId}`, { availableCopies: nextCopies, totalCopies: Math.max(nextCopies, current?.totalCopies || 3) });
+    } catch {
+      // local fallback
+    }
     setBooksList((prev) =>
       prev.map((b) =>
         b.id === bookId
           ? {
               ...b,
-              availableCopies: b.availableCopies > 0 ? 0 : 3,
-              status: b.availableCopies > 0 ? 'Checked Out' : 'Available',
+              availableCopies: nextCopies,
+              status: nextCopies > 0 ? 'Available' : 'Checked Out',
             }
           : b
       )

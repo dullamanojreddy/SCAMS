@@ -4,17 +4,17 @@ import { NotFoundError } from '../../shared/errors/AppError.js';
 export class MapService {
   async getMapOverview() {
     return {
-      nodes: mapRepository.getNodes(),
-      edges: mapRepository.getEdges(),
+      nodes: await mapRepository.getNodes(),
+      edges: await mapRepository.getEdges(),
     };
   }
 
   async findRoute(fromNodeId, toNodeId, options = {}) {
-    const nodes = mapRepository.getNodes();
-    const edges = mapRepository.getEdges();
+    const nodes = await mapRepository.getNodes();
+    const edges = await mapRepository.getEdges();
 
-    const startNode = mapRepository.findNodeById(fromNodeId);
-    const targetNode = mapRepository.findNodeById(toNodeId);
+    const startNode = await mapRepository.findNodeById(fromNodeId);
+    const targetNode = await mapRepository.findNodeById(toNodeId);
 
     if (!startNode) throw new NotFoundError(`Start node (${fromNodeId})`);
     if (!targetNode) throw new NotFoundError(`Target node (${toNodeId})`);
@@ -75,7 +75,7 @@ export class MapService {
     const path = [];
     let curr = toNodeId;
     while (curr) {
-      const nodeObj = mapRepository.findNodeById(curr);
+      const nodeObj = nodes.find((node) => node.id === curr);
       if (nodeObj) path.unshift(nodeObj);
       curr = previous.get(curr);
     }

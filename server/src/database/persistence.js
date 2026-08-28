@@ -51,6 +51,84 @@ export async function initializePersistence() {
   initialized = true;
 }
 
+const mapNotice = (row) => ({
+  id: row.id,
+  title: row.title,
+  subtitle: row.content,
+  content: row.content,
+  timeAgo: 'Recently',
+  category: row.category,
+  priority: row.is_emergency ? 'URGENT' : 'NORMAL',
+  badgeText: row.is_emergency ? 'URGENT' : row.category,
+  badgeType: row.is_emergency ? 'important' : 'general',
+  icon: row.is_emergency ? 'megaphone' : 'info',
+  publishedAt: row.published_at,
+  isPublished: !row.is_retracted,
+  author: row.published_by_name || 'Campus Administration',
+});
+
+const mapComplaint = (row) => ({
+  id: row.id,
+  ticketNumber: row.ticket_id,
+  userId: row.student_id,
+  userName: row.student_name || 'Campus Resident',
+  title: row.title,
+  category: row.category,
+  location: row.location,
+  description: row.description,
+  priority: row.priority === 'URGENT' ? 'CRITICAL' : row.priority,
+  status: row.status === 'SUBMITTED' ? 'OPEN' : row.status,
+  assignedTo: row.assigned_technician,
+  createdAt: row.created_at,
+  timeline: [{ status: row.status, timestamp: row.created_at, note: row.resolution_notes || 'Loaded from PostgreSQL' }],
+});
+
+const mapOrderStatus = { RECEIVED: 'PENDING', READY_FOR_PICKUP: 'READY' };
+
+const mapOrder = (row) => ({
+  id: row.id,
+  orderNumber: row.order_token,
+  userId: row.student_id,
+  vendorId: null,
+  vendorName: 'Campus Canteen',
+  items: row.items || [],
+  subtotal: Number(row.total_amount),
+  tax: 0,
+  total: Number(row.total_amount),
+  status: mapOrderStatus[row.status] || row.status,
+  pickupTime: row.pickup_slot,
+  pickupCounter: 'Express Counter',
+  qrToken: `QR-ORD-${row.order_token}`,
+  createdAt: row.created_at,
+});
+
+export async function hydratePersistentStore(store) {
+  const pool = getPostgresPool();
+  const [notices, complaints, vendors, menuItems, orders, notifications, feedback] = await Promise.all([
+    pool.query(`SELECT n.*, u.full_name AS published_by_name FROM notices n LEFT JOIN users u ON u.id = n.published_by_id WHERE n.is_retracted = FALSE ORDER BY n.published_at DESC`),
+    pool.query(`SELECT c.*, u.full_name AS student_name FROM complaints c LEFT JOIN users u ON u.id = c.student_id ORDER BY c.created_at DESC`),
+    pool.query(`SELECT * FROM canteen_vendors ORDER BY name`),
+    pool.query(`SELECT * FROM canteen_menu_items ORDER BY name`),
+    pool.query(`SELECT * FROM canteen_orders ORDER BY created_at DESC`),
+    pool.query(`SELECT * FROM notifications ORDER BY created_at DESC`),
+    pool.query(`SELECT * FROM campus_feedback ORDER BY created_at DESC`),
+  ]);
+
+  if (notices.rows.length) store.notices = notices.rows.map(mapNotice);
+  if (complaints.rows.length) store.complaints = complaints.rows.map(mapComplaint);
+  if (vendors.rows.length) store.vendors = vendors.rows;
+  if (menuItems.rows.length) {
+    store.foodItems = menuItems.rows.map((row) => ({
+      id: row.id, vendorId: row.vendor_id, name: row.name, price: Number(row.price), category: row.category,
+      image: row.image_url, imageUrl: row.image_url, isAvailable: row.is_available,
+      preparationTimeMinutes: row.prep_time_mins, dietary: String(row.dietary_type).toUpperCase(),
+    }));
+  }
+  if (orders.rows.length) store.orders = orders.rows.map(mapOrder);
+  if (notifications.rows.length) store.notifications = notifications.rows.map((row) => ({ ...row, read: row.is_read }));
+  if (feedback.rows.length) store.feedbacks = feedback.rows;
+}
+
 export async function createPersistentUser({
   campusId,
   name,

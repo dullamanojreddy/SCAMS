@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Bell,
@@ -17,6 +17,7 @@ import {
   Building,
 } from 'lucide-react';
 import { NOTICES, USER_PROFILE } from '../data/mockData';
+import { api } from '../api/client';
 
 export const NoticesModal = ({
   isOpen,
@@ -38,6 +39,13 @@ export const NoticesModal = ({
   const [isEmergency, setIsEmergency] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/notices').then((items) => {
+      if (Array.isArray(items) && items.length) setNoticesList(items);
+    }).catch(() => {});
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const isAdminOrFaculty = currentUser?.role === 'Admin' || currentUser?.role === 'Faculty';
@@ -57,7 +65,7 @@ export const NoticesModal = ({
     );
   };
 
-  const handlePublishNotice = (e) => {
+  const handlePublishNotice = async (e) => {
     e.preventDefault();
     if (!title.trim() || !body.trim()) return;
 
@@ -79,7 +87,19 @@ export const NoticesModal = ({
       isEmergency: isEmergency,
     };
 
-    setNoticesList([newNotice, ...noticesList]);
+    try {
+      const saved = await api.post('/api/v1/notices', {
+        title,
+        subtitle: body,
+        category: category.toUpperCase(),
+        priority: isEmergency ? 'URGENT' : 'NORMAL',
+        author: currentUser?.name,
+      });
+      setNoticesList([saved, ...noticesList]);
+    } catch (error) {
+      console.warn('Notice API unavailable; keeping local notice.', error.message);
+      setNoticesList([newNotice, ...noticesList]);
+    }
     setTitle('');
     setBody('');
     setIsEmergency(false);
@@ -88,7 +108,12 @@ export const NoticesModal = ({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleRetractNotice = (id) => {
+  const handleRetractNotice = async (id) => {
+    try {
+      await api.delete(`/api/v1/notices/${id}`);
+    } catch (error) {
+      console.warn('Notice retract API unavailable; keeping local state.', error.message);
+    }
     setNoticesList((prev) => prev.filter((n) => n.id !== id));
     if (selectedNotice?.id === id) setSelectedNotice(null);
     setToastMessage('Notice retracted from campus broadcast.');

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, MoreHorizontal, Bot, CheckCircle2, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { INITIAL_CHAT_MESSAGES } from '../data/mockData';
+import { api } from '../api/client';
 
 export const AIAssistantWidget = ({
   onHighlightLocation,
@@ -37,18 +38,13 @@ export const AIAssistantWidget = ({
 
     try {
       // Call server-side AI endpoint
-      const res = await fetch('/api/v1/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const aiData = await api.post('/api/v1/ai/chat', {
           message: text.trim(),
+          conversationId: messages.find((m) => m.conversationId)?.conversationId,
           history: messages.map((m) => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text })),
-        }),
       });
 
-      if (res.ok) {
-        const json = await res.json();
-        const aiData = json.data;
+      if (aiData) {
         const responseText = aiData.text || aiData.message?.content || aiData.reply || 'I processed your campus query.';
 
         let botResponse = {

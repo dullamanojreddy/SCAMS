@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { api } from '../api/client';
 
 export const FeedbackModal = ({
   isOpen,
@@ -12,8 +13,13 @@ export const FeedbackModal = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await api.post('/api/v1/feedback', { rating, comment: comments });
+    } catch (error) {
+      console.warn('Feedback API unavailable; keeping local confirmation.', error.message);
+    }
     confetti({
       particleCount: 40,
       spread: 60,

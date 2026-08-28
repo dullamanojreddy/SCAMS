@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   UtensilsCrossed,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { FOOD_ITEMS, CANTEEN_OUTLETS, USER_PROFILE } from '../data/mockData';
+import { api } from '../api/client';
 
 export const FoodMenuModal = ({
   isOpen,
@@ -29,6 +30,25 @@ export const FoodMenuModal = ({
   const [pickupSlot, setPickupSlot] = useState('Immediate (~12 mins)');
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderToken, setOrderToken] = useState(null);
+  const [menuItems, setMenuItems] = useState(FOOD_ITEMS);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/food/items').then((items) => {
+      if (Array.isArray(items) && items.length) {
+        setMenuItems(items.map((item) => ({
+          ...item,
+          canteenId: item.vendorId || 'canteen-main',
+          description: item.description || item.category,
+          inStock: item.isAvailable ?? item.inStock ?? true,
+          isVeg: (item.dietary || '').toUpperCase() !== 'NON-VEG',
+          prepTime: `${item.preparationTimeMinutes || item.prepTime || 10} mins`,
+          stockCount: item.stockCount ?? (item.isAvailable === false ? 0 : 25),
+          image: item.image || item.imageUrl,
+        })));
+      }
+    }).catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -41,8 +61,8 @@ export const FoodMenuModal = ({
     'Evening Snacks (03:45 PM)',
   ];
 
-  const filteredItems = FOOD_ITEMS.filter((item) => {
-    const matchesOutlet = item.canteenId === selectedOutlet;
+  const filteredItems = menuItems.filter((item) => {
+    const matchesOutlet = item.canteenId === selectedOutlet || item.vendorId;
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,11 +87,11 @@ export const FoodMenuModal = ({
 
   const totalItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   const subtotal = Object.entries(cart).reduce((sum, [id, qty]) => {
-    const item = FOOD_ITEMS.find((f) => f.id === id);
+    const item = menuItems.find((f) => f.id === id);
     return sum + (item ? item.price * qty : 0);
   }, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (totalItemsCount === 0) return;
 
     try {
@@ -99,7 +119,18 @@ export const FoodMenuModal = ({
       estimatedReadyTime: '12:55 PM',
     };
 
-    setOrderToken(`#${tokenNumber}`);
+    try {
+      const saved = await api.post('/api/v1/orders', {
+        vendorId: Object.keys(cart).map((id) => menuItems.find((item) => item.id === id)?.vendorId).find(Boolean) || selectedOutlet,
+        items: Object.entries(cart).map(([foodItemId, quantity]) => ({ foodItemId, quantity })),
+        paymentMethod: 'CAMPUS_POINTS',
+      });
+      if (saved?.orderNumber) orderDetails.token = `#${saved.orderNumber}`;
+    } catch (error) {
+      console.warn('Orders API unavailable; keeping local order confirmation.', error.message);
+    }
+
+    setOrderToken(orderDetails.token);
     setOrderSuccess(true);
 
     if (onOrderPlaced) {
@@ -392,7 +423,7 @@ export const FoodMenuModal = ({
                   ) : (
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {Object.entries(cart).map(([id, qty]) => {
-                        const item = FOOD_ITEMS.find((f) => f.id === id);
+                        const item = menuItems.find((f) => f.id === id);
                         if (!item) return null;
                         return (
                           <div

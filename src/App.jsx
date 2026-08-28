@@ -31,6 +31,8 @@ import { SRSModal } from './components/SRSModal';
 import { LocalSetupModal } from './components/LocalSetupModal';
 import { AdminControlModal } from './components/AdminControlModal';
 import { FacultyPortalModal } from './components/FacultyPortalModal';
+import { NotificationCenter } from './components/NotificationCenter';
+import { BookingModal } from './components/BookingModal';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -74,6 +76,8 @@ export default function App() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [adminActiveTab, setAdminActiveTab] = useState('users');
   const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [facultyActiveTab, setFacultyActiveTab] = useState('queries');
   const currentRole = currentUser?.role || 'Student';
   const isStudent = currentRole === 'Student';
@@ -215,8 +219,10 @@ export default function App() {
         break;
       case 'student-id':
       case 'id-card':
-      case 'bookings':
         setIsIdModalOpen(true);
+        break;
+      case 'bookings':
+        setIsBookingModalOpen(true);
         break;
       case 'feedback':
         setIsFeedbackOpen(true);
@@ -309,7 +315,7 @@ export default function App() {
             {/* Top Greeting Header */}
             <Header
               currentUser={currentUser}
-              onOpenNotifications={isStudent ? () => setIsNoticesOpen(true) : undefined}
+              onOpenNotifications={isStudent ? () => setIsNotificationCenterOpen(true) : undefined}
               onOpenScanner={isStudent ? () => setIsIdModalOpen(true) : undefined}
               onOpenSRS={isStudent ? () => setIsSRSOpen(true) : undefined}
               onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
@@ -406,6 +412,9 @@ export default function App() {
         currentUser={currentUser}
         onClose={() => setIsIdModalOpen(false)}
       />
+
+      <NotificationCenter isOpen={isNotificationCenterOpen} onClose={() => setIsNotificationCenterOpen(false)} />
+      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} />
 
       <TrackOrderModal
         isOpen={isTrackOrderOpen}

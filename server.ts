@@ -5,11 +5,18 @@ import { createServer as createViteServer } from 'vite';
 import app from './server/src/app.js';
 import { errorMiddleware, notFoundMiddleware } from './server/src/middleware/error.middleware.js';
 import { initializePersistence } from './server/src/database/persistence.js';
+import { dataStore } from './server/src/database/inMemoryStore.js';
+import { hydratePersistentStore } from './server/src/database/persistence.js';
 
 async function startServer() {
   const PORT = 3000;
 
-  await initializePersistence();
+  try {
+    await initializePersistence();
+    await hydratePersistentStore(dataStore);
+  } catch (error) {
+    console.warn(`[Persistence] PostgreSQL unavailable; using in-memory seed data: ${error.message}`);
+  }
 
   // === Vite Middleware Integration for React SPA ===
   if (process.env.NODE_ENV !== 'production') {

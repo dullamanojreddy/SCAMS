@@ -18,6 +18,7 @@ import eventRoutes from './modules/events/events.routes.js';
 import notificationRoutes from './modules/notifications/notifications.routes.js';
 import feedbackRoutes from './modules/feedback/feedback.routes.js';
 import aiRoutes from './modules/ai/ai.routes.js';
+import dynamicRoutes from './modules/dynamic/dynamic.routes.js';
 import { checkPostgresConnection } from './database/postgresClient.js';
 
 const app = express();
@@ -50,5 +51,6 @@ app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1', dynamicRoutes);
 
 export default app;

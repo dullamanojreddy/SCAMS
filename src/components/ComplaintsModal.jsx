@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   HelpCircle,
@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { COMPLAINTS, FAQS, USER_PROFILE } from '../data/mockData';
+import { api } from '../api/client';
 
 export const ComplaintsModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) => {
   const [activeTab, setActiveTab] = useState('track'); // 'track' | 'submit' | 'queries' | 'faq' | 'admin'
@@ -32,6 +33,19 @@ export const ComplaintsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
   const [priority, setPriority] = useState('Medium');
   const [hasPhoto, setHasPhoto] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/complaints').then((items) => {
+      if (Array.isArray(items) && items.length) {
+        setComplaintsList(items.map((item) => ({
+          ...item,
+          status: item.status === 'OPEN' ? 'Submitted' : item.status,
+          statusHistory: item.timeline || item.statusHistory || [],
+        })));
+      }
+    }).catch(() => {});
+  }, [isOpen]);
 
   // Free text query state
   const [queryText, setQueryText] = useState('');
@@ -60,7 +74,7 @@ export const ComplaintsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
     'Other',
   ];
 
-  const handleSubmitComplaint = (e) => {
+  const handleSubmitComplaint = async (e) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
 
@@ -85,7 +99,19 @@ export const ComplaintsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
       resolvedDate: null,
     };
 
-    setComplaintsList([newComplaint, ...complaintsList]);
+    try {
+      const saved = await api.post('/api/v1/complaints', {
+        category,
+        title,
+        description,
+        location,
+        priority: priority.toUpperCase(),
+      });
+      setComplaintsList([{ ...newComplaint, ...saved }, ...complaintsList]);
+    } catch (error) {
+      console.warn('Complaints API unavailable; keeping local ticket.', error.message);
+      setComplaintsList([newComplaint, ...complaintsList]);
+    }
     setTitle('');
     setDescription('');
     setHasPhoto(false);
@@ -130,7 +156,14 @@ export const ComplaintsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleAdminStatusChange = (complaintId, nextStatus) => {
+  const handleAdminStatusChange = async (complaintId, nextStatus) => {
+    if (nextStatus === 'Resolved') {
+      try {
+        await api.post(`/api/v1/complaints/${complaintId}/resolve`, { note: 'Resolved from campus helpdesk console' });
+      } catch (error) {
+        console.warn('Complaint resolve API unavailable; keeping local state.', error.message);
+      }
+    }
     setComplaintsList((prev) =>
       prev.map((c) => {
         if (c.id === complaintId) {

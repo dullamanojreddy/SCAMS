@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Briefcase,
@@ -22,14 +22,59 @@ import {
   RESUME_GUIDANCE,
   USER_PROFILE,
 } from '../data/mockData';
+import { api } from '../api/client';
 
 export const PlacementsModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) => {
   const [activeTab, setActiveTab] = useState('companies'); // 'companies' | 'questions' | 'resume'
-  const [selectedCompanyId, setSelectedCompanyId] = useState(PLACEMENT_COMPANIES[0].id);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [questionSearch, setQuestionSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [questions, setQuestions] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/placements').then((payload) => {
+      if (Array.isArray(payload?.companies)) {
+        const normalizedCompanies = payload.companies.map((company) => ({
+          id: company.id,
+          name: company.company_name || company.name,
+          logo: company.logo || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=240&auto=format&fit=crop&q=80',
+          ctc: company.package_lpa ? `₹${company.package_lpa} LPA` : company.ctc || 'TBD',
+          type: company.tier || company.type || 'LPA',
+          driveDate: company.drive_date || company.driveDate || 'Upcoming',
+          role: (company.roles || [company.role || 'Software Engineer']).join(', '),
+          baseSalary: company.base_salary || company.baseSalary || '',
+          eligibleBranches: company.eligible_branches || company.eligibleBranches || [],
+          minCgpa: company.min_cgpa || company.minCgpa || 0,
+          backlogsAllowed: company.backlogs_allowed ?? company.backlogsAllowed ?? 0,
+          pastHires: company.past_hires || company.pastHires || 'Varies',
+          rounds: (company.selection_rounds || company.rounds || []).map((round) => ({
+            name: round.name || round,
+            desc: round.desc || round.description || '',
+          })),
+          interviewQuestionsCount: company.interviewQuestionsCount || 0,
+        }));
+        setCompanies(normalizedCompanies);
+        setSelectedCompanyId(normalizedCompanies[0]?.id || '');
+      }
+      if (Array.isArray(payload?.questions)) {
+        setQuestions(payload.questions.map((question) => ({
+          id: question.id,
+          company: question.company_name || question.company || 'Company',
+          role: question.role || 'Role',
+          topic: question.topic,
+          difficulty: question.difficulty || 'Medium',
+          round: question.round || 'Interview',
+          question: question.question,
+          answerGuide: question.answer_tip || question.answerGuide || '',
+          tags: question.tags || [],
+        })));
+      }
+    }).catch(() => {});
+  }, [isOpen]);
 
   // Resume Checklist State
   const [resumeChecklist, setResumeChecklist] = useState({
@@ -43,12 +88,12 @@ export const PlacementsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
 
   if (!isOpen) return null;
 
-  const selectedCompany = PLACEMENT_COMPANIES.find((c) => c.id === selectedCompanyId) || PLACEMENT_COMPANIES[0];
+  const selectedCompany = companies.find((c) => c.id === selectedCompanyId) || companies[0];
 
   const topics = ['All', 'DSA - Trees & Graphs', 'System Design & OS', 'DBMS & SQL', 'Operating Systems', 'DSA - Arrays', 'HR & Behavioral'];
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
-  const filteredQuestions = INTERVIEW_QUESTIONS.filter((q) => {
+  const filteredQuestions = questions.filter((q) => {
     const matchesSearch =
       q.question.toLowerCase().includes(questionSearch.toLowerCase()) ||
       q.company.toLowerCase().includes(questionSearch.toLowerCase()) ||
@@ -103,7 +148,7 @@ export const PlacementsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
               }`}
             >
               <Building2 className="w-4 h-4 text-blue-600" />
-              <span>Company Profiles ({PLACEMENT_COMPANIES.length})</span>
+              <span>Company Profiles ({companies.length})</span>
             </button>
 
             <button
@@ -115,7 +160,7 @@ export const PlacementsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
               }`}
             >
               <HelpCircle className="w-4 h-4 text-purple-600" />
-              <span>Interview Questions Bank ({INTERVIEW_QUESTIONS.length})</span>
+              <span>Interview Questions Bank ({questions.length})</span>
             </button>
 
             <button
@@ -147,7 +192,7 @@ export const PlacementsModal = ({ isOpen, onClose, currentUser = USER_PROFILE })
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">
                 Visiting Companies
               </div>
-              {PLACEMENT_COMPANIES.map((company) => (
+              {companies.map((company) => (
                 <div
                   key={company.id}
                   onClick={() => setSelectedCompanyId(company.id)}

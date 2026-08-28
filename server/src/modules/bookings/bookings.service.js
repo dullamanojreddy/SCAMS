@@ -7,15 +7,15 @@ export class BookingService {
   }
 
   async getResourceAvailability(resourceId, date = new Date().toISOString().split('T')[0]) {
-    const resource = bookingRepository.findResourceById(resourceId);
+    const resource = await bookingRepository.findResourceById(resourceId);
     if (!resource) {
       throw new NotFoundError('Booking Resource');
     }
 
-    const existingReservations = bookingRepository.findReservations({
+    const existingReservations = (await bookingRepository.findReservations({
       resourceId,
       date,
-    }).filter((r) => r.status === 'CONFIRMED');
+    })).filter((r) => r.status === 'CONFIRMED');
 
     // Standard hourly operational slots (08:00 to 18:00)
     const timeSlots = [
@@ -48,22 +48,22 @@ export class BookingService {
       throw new ValidationError('Resource ID, date, startTime, and endTime are required');
     }
 
-    const resource = bookingRepository.findResourceById(resourceId);
+    const resource = await bookingRepository.findResourceById(resourceId);
     if (!resource) {
       throw new NotFoundError('Booking Resource');
     }
 
     // Ensure no conflict
-    const conflicts = bookingRepository.findReservations({
+    const conflicts = (await bookingRepository.findReservations({
       resourceId,
       date,
-    }).filter((r) => r.status === 'CONFIRMED' && r.startTime === startTime);
+    })).filter((r) => r.status === 'CONFIRMED' && r.startTime === startTime);
 
     if (conflicts.length > 0) {
       throw new ConflictError(`Resource ${resource.name} is already booked for ${date} at ${startTime}`);
     }
 
-    const reservation = bookingRepository.createReservation({
+    const reservation = await bookingRepository.createReservation({
       userId,
       resourceId,
       resourceName: resource.name,
@@ -81,7 +81,7 @@ export class BookingService {
   }
 
   async cancelBooking(bookingId, userId) {
-    const booking = bookingRepository.cancelReservation(bookingId);
+    const booking = await bookingRepository.cancelReservation(bookingId, userId);
     if (!booking) {
       throw new NotFoundError('Booking');
     }

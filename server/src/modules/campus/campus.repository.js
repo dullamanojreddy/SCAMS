@@ -1,15 +1,30 @@
 import { dataStore } from '../../database/inMemoryStore.js';
+import { getPostgresPool } from '../../database/postgresClient.js';
 
 export class CampusRepository {
-  findAllBuildings() {
+  async findAllBuildings() {
+    try {
+      const result = await getPostgresPool().query(`SELECT block_name AS name, MIN(block_name) AS code, COUNT(*)::int AS "roomCount", MAX(floor_number)::int AS "floorCount" FROM campus_locations GROUP BY block_name ORDER BY block_name`);
+      if (result.rows.length) return result.rows.map((row) => ({ ...row, id: row.name.toLowerCase().replace(/\s+/g, '-'), category: 'ACADEMIC', facilities: [] }));
+    } catch (error) { /* use the seeded fallback */ }
     return dataStore.buildings;
   }
 
-  findBuildingById(buildingId) {
-    return dataStore.buildings.find((b) => b.id === buildingId || b.code.toLowerCase() === buildingId.toLowerCase()) || null;
+  async findBuildingById(buildingId) {
+    const buildings = await this.findAllBuildings();
+    return buildings.find((b) => b.id === buildingId || b.code.toLowerCase() === buildingId.toLowerCase() || b.name.toLowerCase() === buildingId.toLowerCase()) || null;
   }
 
-  findAllRooms(filter = {}) {
+  async findAllRooms(filter = {}) {
+    try {
+      const values = [];
+      const conditions = [];
+      if (filter.buildingId) { values.push(filter.buildingId); conditions.push(`LOWER(block_name) = LOWER($${values.length})`); }
+      if (filter.floorNumber !== undefined) { values.push(Number(filter.floorNumber)); conditions.push(`floor_number = $${values.length}`); }
+      if (filter.type) { values.push(filter.type); conditions.push(`LOWER(category) = LOWER($${values.length})`); }
+      const result = await getPostgresPool().query(`SELECT id, code, name, block_name AS "buildingId", floor_number AS "floorNumber", room_number AS "roomNumber", category AS type, facility_type AS "facilityType", status, description FROM campus_locations ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''} ORDER BY block_name, floor_number, room_number`, values);
+      if (result.rows.length) return result.rows;
+    } catch (error) { /* use the seeded fallback */ }
     let rooms = dataStore.rooms;
     if (filter.buildingId) {
       rooms = rooms.filter((r) => r.buildingId === filter.buildingId);
@@ -23,8 +38,9 @@ export class CampusRepository {
     return rooms;
   }
 
-  findRoomById(roomId) {
-    return dataStore.rooms.find((r) => r.id === roomId || r.roomNumber === roomId) || null;
+  async findRoomById(roomId) {
+    const rooms = await this.findAllRooms();
+    return rooms.find((r) => r.id === roomId || r.roomNumber === roomId || r.code === roomId) || null;
   }
 
   search(query) {

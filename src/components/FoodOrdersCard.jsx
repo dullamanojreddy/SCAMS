@@ -1,15 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { UtensilsCrossed, Clock, RotateCcw, ArrowRight } from 'lucide-react';
 import { CURRENT_FOOD_ORDER, USUAL_FOOD_ORDER } from '../data/mockData';
+import { api } from '../api/client';
 
 export const FoodOrdersCard = ({
   onViewAll,
   onTrackOrder,
   onReorder,
 }) => {
+  const [currentOrder, setCurrentOrder] = useState(CURRENT_FOOD_ORDER);
+  const [usualOrder, setUsualOrder] = useState(USUAL_FOOD_ORDER);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/v1/orders/me')
+      .then((items) => {
+        if (!active || !Array.isArray(items) || !items.length) return;
+        const latest = items[0];
+        const firstItem = latest.items?.[0] || {};
+
+        setCurrentOrder({
+          token: latest.orderNumber || latest.id,
+          itemName: firstItem.name || latest.vendorName || 'Campus Order',
+          image: firstItem.image || CURRENT_FOOD_ORDER.image,
+          status: latest.status || 'PREPARING',
+          canteen: latest.vendorName || 'Canteen',
+          counter: latest.pickupCounter || 'Express Counter 1',
+          slot: latest.pickupTime || latest.pickupSlot || 'ASAP',
+        });
+
+        if (firstItem.name) {
+          setUsualOrder((prev) => ({
+            ...prev,
+            itemName: firstItem.name,
+            price: firstItem.price || prev.price,
+            canteen: latest.vendorName || prev.canteen,
+          }));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="bg-white dark:bg-[#111111] rounded-3xl p-5 border border-slate-200/80 dark:border-[#222222] shadow-xs flex flex-col justify-between h-full overflow-hidden transition-colors">
-      {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -29,11 +66,12 @@ export const FoodOrdersCard = ({
           </button>
         </div>
 
-        {/* Current Active Order */}
         <div className="mb-3.5">
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
             <span>Active Live Order</span>
-            <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">{CURRENT_FOOD_ORDER.token}</span>
+            <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">
+              {currentOrder.token}
+            </span>
           </div>
 
           <div
@@ -42,22 +80,22 @@ export const FoodOrdersCard = ({
           >
             <div className="flex items-center gap-3">
               <img
-                src={CURRENT_FOOD_ORDER.image}
-                alt={CURRENT_FOOD_ORDER.itemName}
+                src={currentOrder.image}
+                alt={currentOrder.itemName}
                 referrerPolicy="no-referrer"
                 className="w-12 h-12 rounded-xl object-cover shrink-0 shadow-2xs border border-amber-200 dark:border-amber-900/60"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-1">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-neutral-100 truncate">
-                    {CURRENT_FOOD_ORDER.itemName}
+                    {currentOrder.itemName}
                   </h4>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 shrink-0 font-mono">
-                    {CURRENT_FOOD_ORDER.status}
+                    {currentOrder.status}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                  {CURRENT_FOOD_ORDER.canteen} • {CURRENT_FOOD_ORDER.counter}
+                  {currentOrder.canteen} â€¢ {currentOrder.counter}
                 </p>
               </div>
             </div>
@@ -65,16 +103,15 @@ export const FoodOrdersCard = ({
             <div className="flex items-center justify-between pt-2 border-t border-amber-200/80 dark:border-amber-900/30 mt-2 text-xs">
               <div className="text-slate-600 dark:text-neutral-300 font-medium flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Slot: <strong>{CURRENT_FOOD_ORDER.slot}</strong></span>
+                <span>Slot: <strong>{currentOrder.slot}</strong></span>
               </div>
               <span className="font-bold text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-100 flex items-center gap-0.5">
-                Track Live →
+                Track Live â†’
               </span>
             </div>
           </div>
         </div>
 
-        {/* Quick Reorder Frequent Item */}
         <div>
           <div className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-1.5">
             Frequent Favorite
@@ -82,22 +119,22 @@ export const FoodOrdersCard = ({
           <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 dark:bg-[#161616] border border-slate-100 dark:border-[#222222]">
             <div className="flex items-center gap-2.5 truncate">
               <img
-                src={USUAL_FOOD_ORDER.image}
-                alt={USUAL_FOOD_ORDER.itemName}
+                src={usualOrder.image}
+                alt={usualOrder.itemName}
                 className="w-9 h-9 rounded-lg object-cover border border-slate-200 dark:border-[#2a2a2a]"
               />
               <div className="truncate">
                 <div className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate">
-                  {USUAL_FOOD_ORDER.itemName}
+                  {usualOrder.itemName}
                 </div>
                 <div className="text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
-                  {USUAL_FOOD_ORDER.canteen} • ₹{USUAL_FOOD_ORDER.price}
+                  {usualOrder.canteen} â€¢ â‚¹{usualOrder.price}
                 </div>
               </div>
             </div>
 
             <button
-              onClick={() => onReorder ? onReorder(USUAL_FOOD_ORDER) : onViewAll()}
+              onClick={() => onReorder ? onReorder(usualOrder) : onViewAll()}
               className="px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0"
             >
               <RotateCcw className="w-3 h-3" />
@@ -107,7 +144,6 @@ export const FoodOrdersCard = ({
         </div>
       </div>
 
-      {/* Footer */}
       <div className="pt-3 border-t border-slate-100 dark:border-[#222222] flex items-center justify-between text-xs text-slate-400 dark:text-neutral-500">
         <span className="text-[11px] font-mono">Advance slot booking enabled</span>
         <button

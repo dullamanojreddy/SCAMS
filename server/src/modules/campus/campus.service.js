@@ -7,11 +7,11 @@ export class CampusService {
   }
 
   async getBuildingById(buildingId) {
-    const building = campusRepository.findBuildingById(buildingId);
+    const building = await campusRepository.findBuildingById(buildingId);
     if (!building) {
       throw new NotFoundError('Building');
     }
-    const rooms = campusRepository.findAllRooms({ buildingId: building.id });
+    const rooms = await campusRepository.findAllRooms({ buildingId: building.name });
     return {
       ...building,
       rooms,
@@ -23,11 +23,11 @@ export class CampusService {
   }
 
   async getRoomById(roomId) {
-    const room = campusRepository.findRoomById(roomId);
+    const room = await campusRepository.findRoomById(roomId);
     if (!room) {
       throw new NotFoundError('Room');
     }
-    const building = campusRepository.findBuildingById(room.buildingId);
+    const building = await campusRepository.findBuildingById(room.buildingId);
     return {
       ...room,
       building,

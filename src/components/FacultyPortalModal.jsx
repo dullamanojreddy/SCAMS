@@ -19,6 +19,7 @@ import {
   COMPLAINTS,
   COMMUNITY_POSTS,
 } from '../data/mockData';
+import { api } from '../api/client';
 
 export const FacultyPortalModal = ({
   isOpen,
@@ -27,12 +28,17 @@ export const FacultyPortalModal = ({
   initialTab = 'queries',
 }) => {
   const [activeFacultyTab, setActiveFacultyTab] = useState(initialTab);
-  const [queriesList, setQueriesList] = useState(MOCK_FACULTY_QUERIES);
+  const [queriesList, setQueriesList] = useState([]);
   const [noticesList, setNoticesList] = useState(
     NOTICES.filter((n) => n.author?.includes('IT') || n.category?.includes('academic') || n.category?.includes('department'))
   );
   const [replyTextMap, setReplyTextMap] = useState({});
   const [successBanner, setSuccessBanner] = useState(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/faculty/queries').then((items) => { if (Array.isArray(items)) setQueriesList(items); }).catch(() => {});
+  }, [isOpen]);
 
   // New Notice Form State
   const [noticeTitle, setNoticeTitle] = useState('');
@@ -48,10 +54,11 @@ export const FacultyPortalModal = ({
     setTimeout(() => setSuccessBanner(null), 3000);
   };
 
-  const handleRespondToQuery = (queryId) => {
+  const handleRespondToQuery = async (queryId) => {
     const text = replyTextMap[queryId];
     if (!text || !text.trim()) return;
 
+    try { await api.post(`/api/v1/faculty/queries/${queryId}/answer`, { response: text }); } catch { /* retain local response when the API is unavailable */ }
     setQueriesList((prev) =>
       prev.map((q) =>
         q.id === queryId
@@ -375,7 +382,7 @@ export const FacultyPortalModal = ({
 
                 <div className="space-y-3">
                   <div className="font-bold text-xs text-slate-300">Department Complaints Overview</div>
-                  {MOCK_COMPLAINTS.slice(0, 2).map((comp) => (
+                  {COMPLAINTS.slice(0, 2).map((comp) => (
                     <div
                       key={comp.id}
                       className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1"
@@ -391,7 +398,7 @@ export const FacultyPortalModal = ({
                   ))}
 
                   <div className="font-bold text-xs text-slate-300 pt-2">Department Senior Community Discussions</div>
-                  {MOCK_COMMUNITY_POSTS.slice(0, 2).map((post) => (
+                  {COMMUNITY_POSTS.slice(0, 2).map((post) => (
                     <div
                       key={post.id}
                       className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1"

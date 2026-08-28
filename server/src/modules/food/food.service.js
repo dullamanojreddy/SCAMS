@@ -7,11 +7,11 @@ export class FoodService {
   }
 
   async getVendorById(vendorId) {
-    const vendor = foodRepository.findVendorById(vendorId);
+    const vendor = await foodRepository.findVendorById(vendorId);
     if (!vendor) {
       throw new NotFoundError('Food Vendor');
     }
-    const items = foodRepository.findAllItems({ vendorId });
+    const items = await foodRepository.findAllItems({ vendorId });
     return {
       ...vendor,
       menu: items,
@@ -23,7 +23,7 @@ export class FoodService {
   }
 
   async getItemById(itemId) {
-    const item = foodRepository.findItemById(itemId);
+    const item = await foodRepository.findItemById(itemId);
     if (!item) {
       throw new NotFoundError('Food Item');
     }

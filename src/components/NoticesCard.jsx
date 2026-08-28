@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Megaphone, AlertTriangle, ArrowRight, Bell } from 'lucide-react';
 import { NOTICES } from '../data/mockData';
+import { api } from '../api/client';
 
 export const NoticesCard = ({
   onViewAll,
   onSelectNotice,
 }) => {
-  const displayNotices = NOTICES.slice(0, 3);
+  const [displayNotices, setDisplayNotices] = useState(NOTICES.slice(0, 3));
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/v1/notices')
+      .then((items) => {
+        if (!active || !Array.isArray(items) || !items.length) return;
+        setDisplayNotices(items.slice(0, 3).map((item) => ({
+          ...item,
+          subtitle: item.subtitle || item.body || item.content || '',
+          target: item.target || {
+            branch: item.targetBranch || 'ALL',
+            year: item.targetYear || 'ALL',
+          },
+          badge: item.badge || {
+            text: item.badgeText || item.category || 'NOTICE',
+            type: item.badgeType || item.category?.toLowerCase() || 'general',
+          },
+        })));
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   return (
     <div className="bg-white dark:bg-[#111111] rounded-3xl p-5 border border-slate-200/80 dark:border-[#222222] shadow-xs flex flex-col justify-between h-full overflow-hidden transition-colors">
@@ -26,7 +49,7 @@ export const NoticesCard = ({
             onClick={onViewAll}
             className="text-xs font-bold text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 transition cursor-pointer"
           >
-            View All ({NOTICES.length})
+            View All ({displayNotices.length})
           </button>
         </div>
 

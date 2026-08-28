@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   BookOpen,
@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { LIBRARY_BOOKS, ISSUED_BOOKS, USER_PROFILE } from '../data/mockData';
+import { api } from '../api/client';
 
 export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) => {
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'issued' | 'recommendations'
@@ -24,12 +25,36 @@ export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) =>
   const [issuedList, setIssuedList] = useState(ISSUED_BOOKS);
   const [reservedBooks, setReservedBooks] = useState([]);
   const [renewMessage, setRenewMessage] = useState(null);
+  const [books, setBooks] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get('/api/v1/library').then((items) => {
+      if (Array.isArray(items) && items.length) {
+        setBooks(items.map((book) => ({
+          ...book,
+          title: book.title,
+          author: book.author,
+          isbn: book.isbn,
+          subject: book.subject || book.department,
+          shelfLocation: book.shelfLocation || book.shelf_location || book.shelf,
+          totalCopies: book.totalCopies ?? book.total_copies ?? 1,
+          availableCopies: book.availableCopies ?? book.available_copies ?? (book.available ? 1 : 0),
+          coverImage: book.coverImage || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=240&auto=format&fit=crop&q=80',
+          edition: book.edition || 'Latest Edition',
+          isCourseRecommended: book.isCourseRecommended ?? Boolean(book.course_tags?.length),
+          courseTags: book.courseTags || book.course_tags || [],
+          isAvailable: book.available ?? (book.availableCopies ?? book.available_copies ?? 0) > 0,
+        })));
+      }
+    }).catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const categories = ['All', 'Computer Networks', 'DBMS', 'Algorithms & Data Structures', 'Artificial Intelligence', 'Operating Systems'];
 
-  const filteredBooks = LIBRARY_BOOKS.filter((book) => {
+  const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -39,7 +64,7 @@ export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) =>
     return matchesSearch && matchesCategory;
   });
 
-  const recommendedBooks = LIBRARY_BOOKS.filter((b) => b.isCourseRecommended);
+  const recommendedBooks = books.filter((b) => b.isCourseRecommended || b.courseTags?.length);
 
   const handleRenew = (bookId) => {
     setIssuedList((prev) =>
@@ -64,6 +89,7 @@ export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) =>
     if (reservedBooks.includes(book.id)) {
       setReservedBooks((prev) => prev.filter((id) => id !== book.id));
     } else {
+      api.post(`/api/v1/library/${book.id}/reserve`, {}).catch(() => {});
       setReservedBooks((prev) => [...prev, book.id]);
       setRenewMessage(`Reserved "${book.title}". Collect from Circulation Desk within 24h.`);
       setTimeout(() => setRenewMessage(null), 3500);
@@ -111,7 +137,7 @@ export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) =>
               }`}
             >
               <BookMarked className="w-4 h-4" />
-              <span>Search Catalog ({LIBRARY_BOOKS.length})</span>
+              <span>Search Catalog ({books.length})</span>
             </button>
 
             <button
