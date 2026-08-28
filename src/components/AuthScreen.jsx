@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Building2,
   BookOpen,
@@ -21,6 +21,7 @@ import {
 
 export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -41,6 +42,33 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
     password: '',
     confirmPassword: '',
   });
+  const roleMenuRef = useRef(null);
+  const roleOptions = [
+    { value: 'Student', label: 'Student', icon: GraduationCap, description: 'Access student campus services' },
+    { value: 'Faculty', label: 'Faculty', icon: UserCheck, description: 'Manage academic interactions' },
+    { value: 'Admin', label: 'Admin', icon: ShieldCheck, description: 'Manage campus operations' },
+  ];
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!roleMenuRef.current?.contains(event.target)) {
+        setIsRoleMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsRoleMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
@@ -472,18 +500,62 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Account Role
                 </label>
-                <select
-                  id="signup-role"
-                  value={signUpForm.role}
-                  onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition"
-                >
-                  <option value="Student">Student</option>
-                  <option value="Faculty">Faculty</option>
-                  <option value="Admin">Admin</option>
-                </select>
+                <div className="relative" ref={roleMenuRef}>
+                  <button
+                    id="signup-role"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isRoleMenuOpen}
+                    onClick={() => setIsRoleMenuOpen((open) => !open)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50/70 border border-slate-200 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition flex items-center justify-between text-left"
+                  >
+                    <span className="flex items-center gap-2">
+                      {(() => {
+                        const SelectedIcon = roleOptions.find((option) => option.value === signUpForm.role)?.icon || GraduationCap;
+                        return <SelectedIcon className="w-4 h-4 text-blue-600" />;
+                      })()}
+                      <span>{signUpForm.role}</span>
+                    </span>
+                    <span className={`text-slate-400 transition-transform ${isRoleMenuOpen ? 'rotate-180' : ''}`}>⌄</span>
+                  </button>
+
+                  {isRoleMenuOpen && (
+                    <div
+                      role="listbox"
+                      aria-label="Account Role"
+                      className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10"
+                    >
+                      {roleOptions.map((option) => {
+                        const OptionIcon = option.icon;
+                        const isSelected = signUpForm.role === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setSignUpForm({ ...signUpForm, role: option.value });
+                              setIsRoleMenuOpen(false);
+                            }}
+                            className={`w-full rounded-lg px-3 py-2 text-left transition flex items-center gap-2.5 ${
+                              isSelected
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <OptionIcon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-blue-600' : 'text-slate-400'}`} />
+                            <span className="min-w-0">
+                              <span className="block text-xs font-bold">{option.label}</span>
+                              <span className="block text-[10px] text-slate-400 truncate">{option.description}</span>
+                            </span>
+                            {isSelected && <CheckCircle2 className="ml-auto w-4 h-4 text-blue-600 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Roll Number (with 1602 common template helper) */}
