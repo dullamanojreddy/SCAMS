@@ -4,9 +4,12 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import app from './server/src/app.js';
 import { errorMiddleware, notFoundMiddleware } from './server/src/middleware/error.middleware.js';
+import { initializePersistence } from './server/src/database/persistence.js';
 
 async function startServer() {
   const PORT = 3000;
+
+  await initializePersistence();
 
   // === Vite Middleware Integration for React SPA ===
   if (process.env.NODE_ENV !== 'production') {

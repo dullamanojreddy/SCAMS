@@ -99,7 +99,7 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
     }, 600);
   };
 
-  const handleSignUpSubmit = (e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -124,7 +124,35 @@ export const AuthScreen = ({ onLoginSuccess, defaultUser }) => {
       return;
     }
 
+    let registeredUser;
+    try {
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campusId: signUpForm.rollNo.trim(),
+          name: signUpForm.name.trim(),
+          email: `${signUpForm.rollNo.trim().toLowerCase()}@campus.edu`,
+          password: signUpForm.password,
+          role: signUpForm.role.toUpperCase(),
+          department: signUpForm.branch,
+          branch: signUpForm.branch,
+          academicYear: signUpForm.age,
+          section: signUpForm.section,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Unable to create your account.');
+      }
+      registeredUser = result.data;
+    } catch (error) {
+      setErrorMsg(error.message || 'Unable to create your account. Please try again.');
+      return;
+    }
+
     const newUser = {
+      id: registeredUser.id,
       name: signUpForm.name.trim(),
       role: signUpForm.role,
       rollNo: signUpForm.rollNo.trim(),

@@ -1,7 +1,8 @@
 import { dataStore } from '../database/inMemoryStore.js';
 import { UnauthorizedError } from '../shared/errors/AppError.js';
+import { findPersistentUser } from '../database/persistence.js';
 
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   try {
     // In our single-tenant campus environment, resolve current authenticated user or header override
     const authHeader = req.headers.authorization;
@@ -17,6 +18,28 @@ export function authMiddleware(req, res, next) {
       // If token matches user ID directly or mock token
       const found = dataStore.users.find((u) => token.includes(u.id));
       if (found) user = found;
+    }
+
+    if (userIdHeader || authHeader?.startsWith('Bearer ')) {
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+      const persistentUser = await findPersistentUser({
+        userId: userIdHeader || (token && token.length === 36 ? token : null),
+        email: token?.includes('@') ? token : null,
+        campusId: userIdHeader,
+      });
+      if (persistentUser) {
+        user = {
+          id: persistentUser.id,
+          name: persistentUser.full_name,
+          email: persistentUser.email,
+          role: persistentUser.role,
+          studentId: persistentUser.roll_or_emp_id,
+          department: persistentUser.department,
+          branch: persistentUser.branch,
+          campusPoints: persistentUser.campus_points,
+          isVerifiedSenior: persistentUser.is_verified_senior,
+        };
+      }
     }
 
     if (!user) {

@@ -7,6 +7,7 @@ import { dataStore } from '../../database/inMemoryStore.js';
 import { config } from '../../config/env.js';
 import { NotFoundError, ValidationError } from '../../shared/errors/AppError.js';
 import { Logger } from '../../config/logger.js';
+import { recordChatMessage } from '../../database/persistence.js';
 
 export class AIService {
   constructor() {
@@ -23,6 +24,7 @@ export class AIService {
   }
 
   async processChat({ message, conversationId, user, contextData = {} }) {
+    const activeConversationId = conversationId || `conv_${Date.now()}`;
     const context = {
       user: user || { name: 'Manoj Reddy', rollNo: '1602-24-737-152', branch: 'IT', year: '3rd Year' },
       campusId: 'vasavi_campus',
@@ -35,6 +37,13 @@ export class AIService {
     let replyText = '';
 
     try {
+      await recordChatMessage({
+        userId: user?.id || null,
+        conversationId: activeConversationId,
+        role: 'user',
+        content: message || '',
+      });
+
       // 1. Check if Gemini API is available for natural language Q&A with complete knowledge grounding
       if (this.geminiClient && process.env.GEMINI_API_KEY) {
         try {
@@ -175,8 +184,15 @@ Instructions:
         }
       }
 
+      await recordChatMessage({
+        userId: user?.id || null,
+        conversationId: activeConversationId,
+        role: 'assistant',
+        content: replyText,
+      });
+
       return {
-        conversationId: conversationId || `conv_${Date.now()}`,
+        conversationId: activeConversationId,
         message: {
           role: 'assistant',
           content: replyText,

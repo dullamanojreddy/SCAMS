@@ -30,6 +30,25 @@ export class AuthController {
       next(error);
     }
   }
+
+  async register(req, res, next) {
+    try {
+      const user = await authService.register({
+        campusId: req.body.campusId,
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        role: req.body.role,
+        department: req.body.department,
+        branch: req.body.branch,
+        academicYear: req.body.academicYear,
+        section: req.body.section,
+      });
+      return ApiResponse.success(res, user, 'Account registered successfully', 201);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

@@ -1,6 +1,7 @@
 import { authRepository } from './auth.repository.js';
-import { UnauthorizedError, NotFoundError } from '../../shared/errors/AppError.js';
+import { UnauthorizedError, NotFoundError, ValidationError } from '../../shared/errors/AppError.js';
 import { config } from '../../config/env.js';
+import { createPersistentUser } from '../../database/persistence.js';
 
 export class AuthService {
   async getCurrentUser(userId) {
@@ -36,6 +37,35 @@ export class AuthService {
 
   async logout(userId) {
     return { loggedOut: true };
+  }
+
+  async register({ campusId, name, email, password, role, department, branch, academicYear, section }) {
+    if (!campusId || !name || !email || !password || !role || !department) {
+      throw new ValidationError('Campus ID, name, email, password, role, and department are required');
+    }
+
+    if (!['STUDENT', 'FACULTY', 'ADMIN'].includes(role)) {
+      throw new ValidationError('Role must be STUDENT, FACULTY, or ADMIN');
+    }
+
+    try {
+      return await createPersistentUser({
+        campusId,
+        name,
+        email: email.toLowerCase(),
+        password,
+        role,
+        department,
+        branch,
+        academicYear,
+        section,
+      });
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ValidationError('Campus ID or email is already registered');
+      }
+      throw error;
+    }
   }
 }
 
