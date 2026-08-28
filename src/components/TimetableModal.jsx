@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Calendar as CalendarIcon,
@@ -14,10 +14,23 @@ import {
 } from 'lucide-react';
 import { OFFICIAL_TIMETABLE } from '../data/mockData';
 
+const getTodayScheduleDay = () => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const today = days[new Date().getDay()];
+  return today === 'Sunday' ? 'Monday' : today;
+};
+
 export const TimetableModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' | 'master_grid' | 'subjects'
-  const [selectedDay, setSelectedDay] = useState('Monday');
+  const [selectedDay, setSelectedDay] = useState(getTodayScheduleDay);
   const [selectedBatch, setSelectedBatch] = useState('B1'); // 'B1' | 'B2'
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDay(getTodayScheduleDay());
+      setActiveTab('timeline');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
