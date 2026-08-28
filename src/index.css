@@ -43,6 +43,56 @@
   background: rgba(90, 90, 90, 0.8);
 }
 
+/* Keep modal surfaces readable when components use light-first utility classes. */
+.dark .fixed.inset-0 > div {
+  color: #e5e7eb;
+  border-color: #2a2a2a;
+  background-color: #101010;
+}
+
+.dark .fixed.inset-0 > div .bg-white,
+.dark .fixed.inset-0 > div .bg-white\/95 {
+  background-color: #171717;
+  color: #e5e7eb;
+}
+
+.dark .fixed.inset-0 > div .bg-slate-50,
+.dark .fixed.inset-0 > div .bg-slate-50\/70,
+.dark .fixed.inset-0 > div .bg-slate-50\/80,
+.dark .fixed.inset-0 > div .bg-slate-100 {
+  background-color: #1d1d1d;
+}
+
+.dark .fixed.inset-0 > div input,
+.dark .fixed.inset-0 > div textarea,
+.dark .fixed.inset-0 > div select {
+  background-color: #1a1a1a;
+  color: #f3f4f6;
+  border-color: #363636;
+}
+
+.dark .fixed.inset-0 > div input::placeholder,
+.dark .fixed.inset-0 > div textarea::placeholder {
+  color: #888888;
+}
+
+.dark .fixed.inset-0 > div .text-slate-900,
+.dark .fixed.inset-0 > div .text-slate-800,
+.dark .fixed.inset-0 > div .text-slate-700 {
+  color: #f3f4f6;
+}
+
+.dark .fixed.inset-0 > div .text-slate-600,
+.dark .fixed.inset-0 > div .text-slate-500 {
+  color: #a3a3a3;
+}
+
+.dark .fixed.inset-0 > div .border-slate-100,
+.dark .fixed.inset-0 > div .border-slate-200,
+.dark .fixed.inset-0 > div .border-slate-300 {
+  border-color: #303030;
+}
+
 .font-outfit {
   font-family: 'Outfit', sans-serif;
 }
