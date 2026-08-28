@@ -2,6 +2,17 @@
 
 > Smart campus. Smarter you.
 
+<p align="center">
+	<img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
+	<img src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white" alt="Vite" />
+	<img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+	<img src="https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white" alt="Node.js" />
+	<img src="https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white" alt="Express" />
+	<img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+	<img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+	<img src="https://img.shields.io/badge/Gemini_AI-Optional-4285F4?logo=google%20gemini&logoColor=white" alt="Gemini AI" />
+</p>
+
 Campus OS is a unified campus administration and student experience platform for connecting everyday campus services in one place. It combines a React web app, a modular Express API, PostgreSQL persistence, and an optional Gemini-powered campus assistant.
 
 ## Features
