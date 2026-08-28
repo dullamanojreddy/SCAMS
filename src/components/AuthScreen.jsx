@@ -12,6 +12,7 @@ import {
   User,
   Hash,
   GraduationCap,
+  UserCheck,
   Layers,
   Sparkles,
   ArrowRight,
