@@ -12,6 +12,7 @@ import { AIAssistantWidget } from './components/AIAssistantWidget';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { AuthScreen } from './components/AuthScreen';
 import { USER_PROFILE, USER_ROLES } from './data/mockData';
+import { canAccessFeature } from './data/roleAccess';
 
 // SRS Interactive Modals
 import { StudentIdModal } from './components/StudentIdModal';
@@ -74,6 +75,8 @@ export default function App() {
   const [adminActiveTab, setAdminActiveTab] = useState('users');
   const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
   const [facultyActiveTab, setFacultyActiveTab] = useState('queries');
+  const currentRole = currentUser?.role || 'Student';
+  const isStudent = currentRole === 'Student';
 
   const handleLoginSuccess = (userData) => {
     const user = userData || USER_PROFILE;
@@ -110,6 +113,17 @@ export default function App() {
       targetUser = USER_ROLES[roleKey];
     }
     setCurrentUser(targetUser);
+    setActiveTab('home');
+    setIsAdminModalOpen(false);
+    setIsFacultyModalOpen(false);
+    setIsNoticesOpen(false);
+    setIsComplaintsOpen(false);
+    setIsFoodMenuOpen(false);
+    setIsLibraryOpen(false);
+    setIsCommunityOpen(false);
+    setIsPlacementsOpen(false);
+    setIsTimetableOpen(false);
+    setIsFullMapOpen(false);
     try {
       localStorage.setItem('campus_os_user', JSON.stringify(targetUser));
     } catch {
@@ -118,6 +132,11 @@ export default function App() {
   };
 
   const handleQuickAction = (actionId) => {
+    const featureId = actionId === 'report-issue' ? 'complaints' : actionId;
+    if (featureId !== 'home' && !canAccessFeature(currentRole, featureId)) {
+      return;
+    }
+
     switch (actionId) {
       case 'srs':
         setIsSRSOpen(true);
@@ -225,27 +244,35 @@ export default function App() {
   const handleMetricCardClick = (metricId) => {
     switch (metricId) {
       case 'metric-food': // Active Canteen Orders
+        if (!canAccessFeature(currentRole, 'food')) return;
         setIsTrackOrderOpen(true);
         break;
       case 'metric-complaints': // Complaints / Helpdesk
+        if (!canAccessFeature(currentRole, 'complaints')) return;
         setIsComplaintsOpen(true);
         break;
       case 'metric-library': // Library Books
+        if (!canAccessFeature(currentRole, 'library')) return;
         setIsLibraryOpen(true);
         break;
       case 'metric-placements': // Placements Database
+        if (!canAccessFeature(currentRole, 'placements')) return;
         setIsPlacementsOpen(true);
         break;
       case 'metric-1':
+        if (!canAccessFeature(currentRole, 'food')) return;
         setIsTrackOrderOpen(true);
         break;
       case 'metric-2':
+        if (!canAccessFeature(currentRole, 'complaints')) return;
         setIsComplaintsOpen(true);
         break;
       case 'metric-3':
+        if (!canAccessFeature(currentRole, 'events')) return;
         setIsEventsOpen(true);
         break;
       case 'metric-4':
+        if (!canAccessFeature(currentRole, 'notices')) return;
         setIsNoticesOpen(true);
         break;
       default:
@@ -272,7 +299,7 @@ export default function App() {
         currentUser={currentUser}
         onClose={() => setIsMobileSidebarOpen(false)}
         onLogout={handleLogout}
-        onOpenSRS={() => setIsSRSOpen(true)}
+        onOpenSRS={isStudent ? () => setIsSRSOpen(true) : undefined}
         onSelectTab={(tab) => {
           setActiveTab(tab);
           setIsMobileSidebarOpen(false);
@@ -295,15 +322,15 @@ export default function App() {
             {/* Top Greeting Header */}
             <Header
               currentUser={currentUser}
-              onOpenNotifications={() => setIsNoticesOpen(true)}
-              onOpenScanner={() => setIsIdModalOpen(true)}
-              onOpenSRS={() => setIsSRSOpen(true)}
+              onOpenNotifications={isStudent ? () => setIsNoticesOpen(true) : undefined}
+              onOpenScanner={isStudent ? () => setIsIdModalOpen(true) : undefined}
+              onOpenSRS={isStudent ? () => setIsSRSOpen(true) : undefined}
               onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
               onSwitchRole={handleSwitchRole}
             />
 
             {/* Top Row: 3 Grid Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {isStudent && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {/* Card 1: Today's Schedule */}
               <div className="min-h-[320px] flex flex-col">
                 <ScheduleCard
@@ -329,10 +356,10 @@ export default function App() {
                   onFloorChange={setSelectedFloor}
                 />
               </div>
-            </div>
+            </div>}
 
             {/* Middle Row: 3 Grid Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
+            {isStudent && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
               {/* Card 4: Notices & Announcements */}
               <div className="min-h-[320px] flex flex-col">
                 <NoticesCard
@@ -357,14 +384,14 @@ export default function App() {
                   onSelectEvent={() => setIsEventsOpen(true)}
                 />
               </div>
-            </div>
+            </div>}
 
             {/* Bottom Row: 4 Metric Cards */}
-            <MetricCards onCardClick={handleMetricCardClick} />
+            {isStudent && <MetricCards onCardClick={handleMetricCardClick} />}
           </div>
 
           {/* 3. Right Column: AI Assistant */}
-          <div className="w-full 2xl:w-[350px] shrink-0 flex flex-col gap-6">
+          {isStudent && <div className="w-full 2xl:w-[350px] shrink-0 flex flex-col gap-6">
             {/* AI Assistant Widget */}
             <div className="h-full">
               <AIAssistantWidget
@@ -375,13 +402,14 @@ export default function App() {
                 onPlaceOrder={() => setIsTrackOrderOpen(true)}
               />
             </div>
-          </div>
+          </div>}
         </div>
       </main>
 
       {/* Native Mobile Bottom Navigation */}
       <MobileBottomNav
         activeTab={activeTab}
+        currentUser={currentUser}
         onSelectTab={setActiveTab}
         onOpenAction={handleQuickAction}
         onOpenIdModal={() => setIsIdModalOpen(true)}

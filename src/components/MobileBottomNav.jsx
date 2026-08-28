@@ -1,24 +1,51 @@
 import React from 'react';
-import { Home, Map, Bot, Utensils, MessageSquare } from 'lucide-react';
+import {
+  Home,
+  Map,
+  Bot,
+  Utensils,
+  MessageSquare,
+  ShieldCheck,
+  Bell,
+  HelpCircle,
+  UserCheck,
+} from 'lucide-react';
+import { canAccessFeature } from '../data/roleAccess';
 
 export const MobileBottomNav = ({
   activeTab,
+  currentUser,
   onSelectTab,
   onOpenAction,
   onOpenIdModal,
 }) => {
-  const tabs = [
-    { id: 'home', label: 'Home', icon: Home, action: () => onSelectTab('home') },
-    { id: 'map', label: 'Campus Map', icon: Map, action: () => onOpenAction('map') },
-    { id: 'ai-assistant', label: 'Ask AI', icon: Bot, isCenter: true, action: () => onOpenAction('ai-assistant') },
-    { id: 'food', label: 'Food', icon: Utensils, action: () => onOpenAction('food') },
-    { id: 'community', label: 'Community', icon: MessageSquare, action: () => onOpenAction('community') },
-  ];
+  const role = currentUser?.role || 'Student';
+  const tabs = role === 'Admin'
+    ? [
+        { id: 'admin-console', label: 'Admin Center', icon: ShieldCheck, action: () => onOpenAction('admin-console') },
+        { id: 'admin-emergency', label: 'Emergency', icon: Bell, action: () => onOpenAction('admin-emergency') },
+        { id: 'admin-complaints', label: 'Complaints', icon: HelpCircle, action: () => onOpenAction('admin-complaints') },
+      ]
+    : role === 'Faculty'
+      ? [
+          { id: 'faculty-portal', label: 'Faculty Portal', icon: UserCheck, action: () => onOpenAction('faculty-portal') },
+          { id: 'faculty-queries', label: 'Queries', icon: MessageSquare, action: () => onOpenAction('faculty-queries') },
+          { id: 'faculty-notices', label: 'Notices', icon: Bell, action: () => onOpenAction('faculty-notices') },
+        ]
+      : [
+          { id: 'home', label: 'Home', icon: Home, action: () => onSelectTab('home') },
+          { id: 'map', label: 'Campus Map', icon: Map, action: () => onOpenAction('map') },
+          { id: 'ai-assistant', label: 'Ask AI', icon: Bot, isCenter: true, action: () => onOpenAction('ai-assistant') },
+          { id: 'food', label: 'Food', icon: Utensils, action: () => onOpenAction('food') },
+          { id: 'community', label: 'Community', icon: MessageSquare, action: () => onOpenAction('community') },
+        ];
+
+  const visibleTabs = tabs.filter((tab) => tab.id === 'home' || canAccessFeature(role, tab.id));
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0c0c0c]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-[#222222] px-3 py-2 shadow-lg transition-colors">
       <div className="flex items-center justify-around max-w-md mx-auto">
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
 

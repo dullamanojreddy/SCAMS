@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Home,
-  Calendar,
   Utensils,
   Map,
   Bell,
@@ -35,7 +34,6 @@ export const Sidebar = ({
   const { theme, toggleTheme, isDark } = useTheme();
   const profile = currentUser || USER_PROFILE;
 
-  // Role-specific Navigation Lists
   const getNavItems = () => {
     if (profile?.role === 'Admin') {
       return [
@@ -48,27 +46,17 @@ export const Sidebar = ({
         { id: 'admin-moderation', label: '6. Community Moderation', icon: ShieldCheck },
         { id: 'admin-placements', label: '7. Placements & Q-Bank', icon: Briefcase },
         { id: 'admin-audit', label: '8. Student Data & Audit', icon: FileText },
-        { id: 'local-db', label: 'Run with PostgreSQL', icon: Building2, badge: 'Local Setup' },
-        { id: 'srs', label: 'SRS v1.0 Spec Matrix', icon: FileText, badge: '100%' },
       ];
     } else if (profile?.role === 'Faculty') {
       return [
         { id: 'faculty-portal', label: 'Faculty Academic Portal', icon: UserCheck, badge: 'Dept IT' },
         { id: 'faculty-queries', label: 'Student Course Queries', icon: MessageSquare, badge: '2 Pending' },
         { id: 'faculty-notices', label: 'Academic & Lab Notices', icon: Bell },
-        { id: 'timetable', label: 'Teaching Schedule', icon: Calendar },
-        { id: 'map', label: 'Campus Map & Cabins', icon: Map },
-        { id: 'library', label: 'Central Library Catalog', icon: BookOpen },
-        { id: 'food', label: 'Faculty Canteen Order', icon: Utensils },
-        { id: 'local-db', label: 'PostgreSQL Diagnostics', icon: Building2 },
-        { id: 'srs', label: 'SRS v1.0 Spec Matrix', icon: FileText, badge: '100%' },
       ];
     }
 
-    // Default Student Navigation
     return [
       { id: 'home', label: 'Home Dashboard', icon: Home },
-      { id: 'srs', label: 'SRS v1.0 Spec Matrix', icon: FileText, badge: '100%' },
       { id: 'notices', label: 'Notices & Bulletins', icon: Bell, badge: 3 },
       { id: 'map', label: 'Smart Campus Map', icon: Map },
       { id: 'food', label: 'Canteen & Food', icon: Utensils },
@@ -76,8 +64,6 @@ export const Sidebar = ({
       { id: 'community', label: 'Senior Community', icon: MessageSquare, badge: 'New' },
       { id: 'placements', label: 'Placements & Resumes', icon: Briefcase },
       { id: 'complaints', label: 'Complaints & FAQ', icon: HelpCircle },
-      { id: 'timetable', label: 'Class Timetable', icon: Calendar },
-      { id: 'local-db', label: 'Run with PostgreSQL', icon: Building2, badge: 'Ready' },
     ];
   };
 
@@ -191,7 +177,7 @@ export const Sidebar = ({
 
           <div
             id="sidebar-user-card"
-            onClick={onOpenIdModal}
+            onClick={profile.role === 'Student' ? onOpenIdModal : undefined}
             className="p-3 rounded-2xl bg-[#121212] border border-[#222222] hover:border-[#333333] transition cursor-pointer flex items-center gap-3 group"
           >
             <img
@@ -217,14 +203,16 @@ export const Sidebar = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              id="btn-sidebar-view-id"
-              onClick={onOpenIdModal}
-              className="flex-1 py-2 rounded-xl bg-[#161616] hover:bg-[#222222] border border-[#262626] text-neutral-200 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <QrCode className="w-3.5 h-3.5 text-[#c4f428]" />
-              <span>Smart ID</span>
-            </button>
+              {profile.role === 'Student' && (
+                <button
+                  id="btn-sidebar-view-id"
+                  onClick={onOpenIdModal}
+                  className="flex-1 py-2 rounded-xl bg-[#161616] hover:bg-[#222222] border border-[#262626] text-neutral-200 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5 text-[#c4f428]" />
+                  <span>Smart ID</span>
+                </button>
+              )}
 
             <button
               id="btn-sidebar-logout"

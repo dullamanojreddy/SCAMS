@@ -111,14 +111,16 @@ export const Header = ({
                   {greetingEmoji}
                 </span>
               </h1>
-              <button
-                onClick={onOpenSRS}
-                className="text-[10px] font-mono font-bold bg-emerald-500/20 hover:bg-emerald-500 hover:text-black text-emerald-600 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/40 transition flex items-center gap-1 cursor-pointer"
-                title="View Full SRS v1.0 Spec & Compliance Matrix"
-              >
-                <FileText className="w-3 h-3" />
-                <span>SRS v1.0 (100% REQ PASS)</span>
-              </button>
+              {onOpenSRS && (
+                <button
+                  onClick={onOpenSRS}
+                  className="text-[10px] font-mono font-bold bg-emerald-500/20 hover:bg-emerald-500 hover:text-black text-emerald-600 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/40 transition flex items-center gap-1 cursor-pointer"
+                  title="View Full SRS v1.0 Spec & Compliance Matrix"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>SRS v1.0 (100% REQ PASS)</span>
+                </button>
+              )}
             </div>
 
             <p className="text-xs font-medium text-slate-500 dark:text-neutral-400 mt-0.5 flex items-center gap-2 flex-wrap">
@@ -143,14 +145,16 @@ export const Header = ({
             {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
           </button>
 
-          <button
-            id="btn-header-scanner-mobile"
-            onClick={onOpenScanner}
-            className="w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] flex items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer"
-            title="Scan QR / Student ID"
-          >
-            <Scan className="w-4 h-4" />
-          </button>
+          {onOpenScanner && (
+            <button
+              id="btn-header-scanner-mobile"
+              onClick={onOpenScanner}
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] flex items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer"
+              title="Scan QR / Student ID"
+            >
+              <Scan className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -244,27 +248,31 @@ export const Header = ({
         </div>
 
         {/* Notification Bell Button */}
-        <button
-          id="btn-header-notifications"
-          onClick={onOpenNotifications}
-          className="relative w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] flex items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer shrink-0"
-          title="Notifications & Notices"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold flex items-center justify-center shadow-sm">
-            3
-          </span>
-        </button>
+        {onOpenNotifications && (
+          <button
+            id="btn-header-notifications"
+            onClick={onOpenNotifications}
+            className="relative w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] flex items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer shrink-0"
+            title="Notifications & Notices"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold flex items-center justify-center shadow-sm">
+              3
+            </span>
+          </button>
+        )}
 
         {/* QR / ID Scanner Button */}
-        <button
-          id="btn-header-scanner"
-          onClick={onOpenScanner}
-          className="hidden md:flex w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer shrink-0"
-          title="Scan QR / Smart ID"
-        >
-          <Scan className="w-4 h-4" />
-        </button>
+        {onOpenScanner && (
+          <button
+            id="btn-header-scanner"
+            onClick={onOpenScanner}
+            className="hidden md:flex w-10 h-10 rounded-full bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-[#1c1c1c] active:scale-95 shadow-sm transition cursor-pointer shrink-0"
+            title="Scan QR / Smart ID"
+          >
+            <Scan className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Weather Widget */}
         <div className="hidden xl:flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-[#222222] shadow-sm shrink-0">
