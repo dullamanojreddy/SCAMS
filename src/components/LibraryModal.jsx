@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { LIBRARY_BOOKS, ISSUED_BOOKS, USER_PROFILE } from '../data/mockData';
+import { LibraryFineCalculator } from './LibraryFineCalculator';
 import { api } from '../api/client';
 
 export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) => {
@@ -307,6 +308,8 @@ export const LibraryModal = ({ isOpen, onClose, currentUser = USER_PROFILE }) =>
                 <div className="text-base font-bold text-rose-600 font-mono">₹10.00</div>
               </div>
             </div>
+
+            <LibraryFineCalculator />
 
             <div className="space-y-3">
               {issuedList.map((item) => (
